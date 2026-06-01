@@ -1,0 +1,35 @@
+button {
+	font-size: inherit;
+}
+
+input {
+	font-size: var(--font-size);
+	box-sizing: border-box;
+}
+
+.bg {
+	display: flex;
+	gap: 1px;
+}
+
+.oriented {
+	display: flex;
+}
+
+.disoriented {
+	flex-direction: column;
+}
+
+@media (orientation: portrait) {
+	.oriented {
+		flex-direction: column;
+	}
+
+	.disoriented {
+		flex-direction: row;
+	}
+}
+
+.fg {
+	font-family: system-ui sans-serif;
+}
