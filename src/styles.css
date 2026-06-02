@@ -1,15 +1,23 @@
 button {
-	font-size: inherit;
+	font-size: var(--font-size);
 }
 
 input {
 	font-size: var(--font-size);
 	box-sizing: border-box;
+	background: transparent;
+	border: none;
+	outline: none;
+}
+
+label {
+	font-size: var(--font-size);
 }
 
 .bg {
 	display: flex;
 	gap: 1px;
+	min-width: 0;
 }
 
 .oriented {
