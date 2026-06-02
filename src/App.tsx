@@ -24,10 +24,8 @@ function TableLabel({ children }: { children: React.ReactNode }) {
 
 function Cargo() {
 	return (
-		<div className="bg" style={{ alignItems: 'center' }}>
-			<TableLabel>
-				1
-			</TableLabel>
+		<div className="bg" style={{ alignItems: "center" }}>
+			<TableLabel>1</TableLabel>
 			<div className="bg" style={{ flex: 1, minWidth: 0 }}>
 				<input type="number" style={{ width: "100%" }} />
 			</div>
@@ -125,22 +123,17 @@ function VehiclesTable() {
 }
 
 function Controls() {
-	useEffect(() => {
-		function onResize() {
-		}
-		onResize();
-		window.addEventListener('resize', onResize);
-		return () => window.removeEventListener('resize', onResize);
-
-	}, []);
 	return (
 		<div className="bg" style={{ justifyContent: "center" }}>
-			<div id='controls' style={{
-				display: "flex",
-				whiteSpace: "nowrap",
-				margin: 'var(--controls-margin) 0',
-				gap: 'var(--controls-margin)'
-			}}>
+			<div
+				id="controls"
+				style={{
+					display: "flex",
+					whiteSpace: "nowrap",
+					margin: "var(--controls-margin) 0",
+					gap: "var(--controls-margin)",
+				}}
+			>
 				<label style={{ display: "flex", alignItems: "center" }}>
 					<input type="radio" name="state" style={{ width: "auto" }} />
 					Minimizar custo
@@ -212,19 +205,25 @@ export default function App() {
 				"--font-size",
 				`${squeezeFg(root)}px`,
 			);
-			
-			const h3 = document.querySelector('h3');
-			if (!h3) throw new Error('No h3 element found')
-			const controls = document.getElementById('controls');
-			if (!controls) throw new Error('No controls element found')
+
+			const h3 = document.querySelector("h3");
+			if (!h3) throw new Error("No h3 element found");
+			const controls = document.getElementById("controls");
+			if (!controls) throw new Error("No controls element found");
 
 			const h3Margin = parseFloat(getComputedStyle(h3).marginBlockStart);
 			const h3Height = parseFloat(getComputedStyle(h3).height);
 
 			const controlsHeight = parseFloat(getComputedStyle(controls).height);
-			const controlsMargin = h3Margin + h3Height / 2 - controlsHeight / 2;
-			
-			document.documentElement.style.setProperty('--controls-margin', `${controlsMargin}px`);
+			const controlsMargin = Math.max(
+				0,
+				h3Margin + h3Height / 2 - controlsHeight / 2,
+			);
+
+			document.documentElement.style.setProperty(
+				"--controls-margin",
+				`${controlsMargin}px`,
+			);
 		};
 
 		onResize();
