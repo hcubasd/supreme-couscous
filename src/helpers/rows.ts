@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 // A row is just its editable field values, keyed by a stable id so React keeps
 // input identity (and focus) as rows are added and removed around it.
@@ -33,13 +33,55 @@ function normalize(rows: Row[], fieldCount: number): Row[] {
 		: [...head, last, emptyRow(fieldCount)];
 }
 
-export function useGrowingRows(fieldCount: number, initial: string[][] = []) {
-	const [rows, setRows] = useState<Row[]>(() =>
-		normalize(
-			initial.map((values) => ({ id: makeId(), values })),
+// Restore previously persisted row values, but only if they still match the
+// current schema (right shape and field count). Anything malformed or stale is
+// ignored so the caller falls back to its seed data.
+function loadStored(key: string, fieldCount: number): string[][] | null {
+	try {
+		const raw = localStorage.getItem(key);
+		if (!raw) return null;
+		const parsed = JSON.parse(raw);
+		const valid =
+			Array.isArray(parsed) &&
+			parsed.every(
+				(row) =>
+					Array.isArray(row) &&
+					row.length === fieldCount &&
+					row.every((value) => typeof value === "string"),
+			);
+		return valid ? (parsed as string[][]) : null;
+	} catch {
+		return null;
+	}
+}
+
+// `storageKey`, when given, persists the row values to localStorage and restores
+// them on the next load — params survive a refresh. Results are never stored.
+export function useGrowingRows(
+	fieldCount: number,
+	initial: string[][] = [],
+	storageKey?: string,
+) {
+	const [rows, setRows] = useState<Row[]>(() => {
+		const stored = storageKey ? loadStored(storageKey, fieldCount) : null;
+		return normalize(
+			(stored ?? initial).map((values) => ({ id: makeId(), values })),
 			fieldCount,
-		),
-	);
+		);
+	});
+
+	useEffect(() => {
+		if (!storageKey) return;
+		try {
+			localStorage.setItem(
+				storageKey,
+				JSON.stringify(rows.map((row) => row.values)),
+			);
+		} catch {
+			// Storage may be unavailable (private mode, quota); persistence is
+			// best-effort and never blocks the UI.
+		}
+	}, [storageKey, rows]);
 
 	const setCell = (id: string, field: number, value: string) => {
 		setRows((prev) =>
@@ -57,5 +99,9 @@ export function useGrowingRows(fieldCount: number, initial: string[][] = []) {
 		);
 	};
 
-	return { rows, setCell };
+	// Drop every row back to a single empty one. The persist effect then writes
+	// the cleared state, so it survives a reload too.
+	const clear = () => setRows(normalize([], fieldCount));
+
+	return { rows, setCell, clear };
 }

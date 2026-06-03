@@ -14,22 +14,11 @@ input {
 	background: transparent;
 	border: none;
 	outline: none;
+	text-align: center;
 	/* Collapse the UA form-control vertical padding so an input is exactly one
 	   line tall — matching the plain-text rows in the output table. */
 	padding-block: 0;
 	line-height: var(--row-line-height);
-}
-
-input[type="number"] {
-	text-align: center;
-	-moz-appearance: textfield;
-	appearance: textfield;
-}
-
-input[type="number"]::-webkit-inner-spin-button,
-input[type="number"]::-webkit-outer-spin-button {
-	-webkit-appearance: none;
-	margin: 0;
 }
 
 label {

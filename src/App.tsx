@@ -18,6 +18,11 @@ const fmt = (n: number) => n.toLocaleString("pt-BR");
 const fmtLen = (n: number) =>
 	n.toLocaleString("pt-BR", { minimumFractionDigits: 2 });
 
+// Accept the Brazilian decimal comma as well as a dot. The NumberCell filter
+// guarantees at most one separator, so a plain comma→dot swap is enough.
+const parseNumber = (value: string) =>
+	parseFloat(value.replace(/,/g, ".")) || 0;
+
 type Rgb = { r: number; g: number; b: number };
 const toRgb = ({ r, g, b }: Rgb) => `rgb(${r}, ${g}, ${b})`;
 
@@ -65,6 +70,33 @@ function Parameter({ children }: { children: React.ReactNode }) {
 	);
 }
 
+// A numeric field. We use a text input (not type="number") so a decimal comma is
+// always accepted regardless of device locale; the filter keeps the value to a
+// single number with at most one separator, and parseNumber resolves it at read
+// time.
+function NumberCell({
+	value,
+	onChange,
+}: {
+	value: string;
+	onChange: (value: string) => void;
+}) {
+	return (
+		<div className="bg" style={{ flex: 1, minWidth: 0 }}>
+			<input
+				type="text"
+				inputMode="decimal"
+				style={{ width: "100%" }}
+				value={value}
+				onChange={(e) => {
+					const next = e.target.value;
+					if (next === "" || /^\d*[.,]?\d*$/.test(next)) onChange(next);
+				}}
+			/>
+		</div>
+	);
+}
+
 function Cargo({
 	order,
 	values,
@@ -87,32 +119,18 @@ function Cargo({
 			>
 				{order}
 			</TableLabel>
-			<div className="bg" style={{ flex: 1, minWidth: 0 }}>
-				<input
-					type="number"
-					style={{ width: "100%" }}
-					value={values[0]}
-					onChange={(e) => onChange(0, e.target.value)}
-				/>
-			</div>
-			<div className="bg" style={{ flex: 1, minWidth: 0 }}>
-				<input
-					type="number"
-					style={{ width: "100%" }}
-					value={values[1]}
-					onChange={(e) => onChange(1, e.target.value)}
-				/>
-			</div>
+			<NumberCell value={values[0]} onChange={(v) => onChange(0, v)} />
+			<NumberCell value={values[1]} onChange={(v) => onChange(1, v)} />
 		</Parameter>
 	);
 }
 
 const DUMMY_CARGO: string[][] = [
-	["10000", "1.5"],
-	["12000", "1.8"],
-	["8000", "1.4"],
-	["15000", "2.2"],
-	["9000", "1.6"],
+	["10000", "1,5"],
+	["12000", "1,8"],
+	["8000", "1,4"],
+	["15000", "2,2"],
+	["9000", "1,6"],
 ];
 
 function CargoTable({
@@ -179,20 +197,17 @@ function Vehicle({
 			<div className="bg" style={{ flex: 1, minWidth: 0 }}>
 				<input
 					type="text"
-					style={{ width: "100%", color, textAlign: "center" }}
+					style={{ width: "100%", color }}
 					value={values[0]}
 					onChange={(e) => onChange(0, e.target.value)}
 				/>
 			</div>
 			{[1, 2, 3, 4, 5].map((field) => (
-				<div key={field} className="bg" style={{ flex: 1, minWidth: 0 }}>
-					<input
-						type="number"
-						style={{ width: "100%" }}
-						value={values[field]}
-						onChange={(e) => onChange(field, e.target.value)}
-					/>
-				</div>
+				<NumberCell
+					key={field}
+					value={values[field]}
+					onChange={(v) => onChange(field, v)}
+				/>
 			))}
 		</Parameter>
 	);
@@ -201,8 +216,8 @@ function Vehicle({
 // Columns: Classe, Quantidade (frota), Capacidade de peso, Peso mínimo,
 // Comprimento útil, Espaçamento.
 const DUMMY_VEHICLES: string[][] = [
-	["Classe A", "10", "15000", "10000", "5", "0.2"],
-	["Classe B", "2", "35000", "25000", "14", "0.5"],
+	["Classe A", "10", "15000", "10000", "5", "0,2"],
+	["Classe B", "2", "35000", "25000", "14", "0,5"],
 ];
 
 function VehiclesTable({
@@ -267,10 +282,12 @@ function Controls({
 	objective,
 	setObjective,
 	onSolve,
+	onClear,
 }: {
 	objective: Objective;
 	setObjective: (objective: Objective) => void;
 	onSolve: () => void;
+	onClear: () => void;
 }) {
 	return (
 		<div className="bg" style={{ justifyContent: "center" }}>
@@ -309,6 +326,9 @@ function Controls({
 				<button id="solve-button" type="button" onClick={onSolve}>
 					Calcular
 				</button>
+				<button id="clear-button" type="button" onClick={onClear}>
+					Limpar
+				</button>
 			</div>
 		</div>
 	);
@@ -328,7 +348,7 @@ function AssignmentRow({
 	useLength: boolean;
 }) {
 	return (
-		<div className="bg" style={{ height: "var(--row-height, auto)" }}>
+		<div className="bg" style={{ minHeight: "var(--row-height, 0px)" }}>
 			<TableLabel>{order}</TableLabel>
 			<TableLabel style={{ color }}>{name}</TableLabel>
 			<TableLabel>{trip.units}</TableLabel>
@@ -351,7 +371,7 @@ function TotalRow({
 	totalC: number;
 }) {
 	return (
-		<div className="bg" style={{ height: "var(--row-height, auto)" }}>
+		<div className="bg" style={{ minHeight: "var(--row-height, 0px)" }}>
 			<TableLabel style={BOLD}>Total</TableLabel>
 			<TableLabel> </TableLabel>
 			<TableLabel style={BOLD}>{totalUnits}</TableLabel>
@@ -370,9 +390,18 @@ function AssignmentsBody({ solved }: { solved: Solved | null }) {
 	const { result, vehicles, colors } = solved;
 
 	if (result.status !== "success") {
+		// Invalid input gets the specific guidance message (it's actionable); a
+		// valid-but-unsolvable problem just reports that nothing was found.
+		const message =
+			result.status === "invalid"
+				? result.message
+				: "Nenhuma composição encontrada";
 		return (
-			<div className="bg" style={{ flexShrink: 0 }}>
-				<TableLabel>{result.message}</TableLabel>
+			<div
+				className="bg"
+				style={{ flexShrink: 0, minHeight: "var(--row-height, 0px)" }}
+			>
+				<TableLabel>{message}</TableLabel>
 			</div>
 		);
 	}
@@ -406,6 +435,9 @@ function AssignmentsBody({ solved }: { solved: Solved | null }) {
 						className="bg"
 						style={{ flexDirection: "column", flexShrink: 0 }}
 					>
+						<Label style={{ ...BOLD, minHeight: "var(--row-height, 0px)" }}>
+							Composição {ci + 1} de {result.compositions.length}
+						</Label>
 						{tripRows}
 						<TotalRow totalUnits={totalUnits} totalW={totalW} totalC={totalC} />
 					</div>
@@ -421,28 +453,34 @@ function AssignmentsTable({ solved }: { solved: Solved | null }) {
 		refit();
 	}, [solved]);
 
+	// The column header only makes sense over real composition rows; hide it
+	// before the first solve and for message results (no solution / invalid input).
+	const showHeader = solved?.result.status === "success";
+
 	return (
 		<div className="bg" style={{ flex: 1, flexDirection: "column" }}>
-			<div className="bg">
-				<TableLabel>
-					<h4>Ordem</h4>
-				</TableLabel>
-				<TableLabel>
-					<h4>Classe</h4>
-				</TableLabel>
-				<TableLabel>
-					<h4>Cargas carregadas</h4>
-				</TableLabel>
-				<TableLabel>
-					<h4>Peso carregado (kg)</h4>
-				</TableLabel>
-				<TableLabel>
-					<h4>Peso cobrado (kg)</h4>
-				</TableLabel>
-				<TableLabel>
-					<h4>Comprimento utilizado</h4>
-				</TableLabel>
-			</div>
+			{showHeader && (
+				<div className="bg">
+					<TableLabel>
+						<h4>Ordem</h4>
+					</TableLabel>
+					<TableLabel>
+						<h4>Classe</h4>
+					</TableLabel>
+					<TableLabel>
+						<h4>Cargas carregadas</h4>
+					</TableLabel>
+					<TableLabel>
+						<h4>Peso carregado (kg)</h4>
+					</TableLabel>
+					<TableLabel>
+						<h4>Peso cobrado (kg)</h4>
+					</TableLabel>
+					<TableLabel>
+						<h4>Comprimento utilizado</h4>
+					</TableLabel>
+				</div>
+			)}
 			<div
 				className="bg"
 				style={{ flex: 1, flexDirection: "column", overflowY: "auto" }}
@@ -459,26 +497,26 @@ function isFilled(row: Row): boolean {
 
 function toItems(rows: Row[]): Item[] {
 	return rows.filter(isFilled).map((row) => ({
-		w: parseFloat(row.values[0]) || 0,
-		l: parseFloat(row.values[1]) || 0,
+		w: parseNumber(row.values[0]),
+		l: parseNumber(row.values[1]),
 	}));
 }
 
 function toVehicles(rows: Row[]): Vehicle[] {
 	return rows.filter(isFilled).map((row, i) => ({
 		name: row.values[0] || `Classe ${i + 1}`,
-		fleet: parseInt(row.values[1], 10) || 0,
-		W: parseFloat(row.values[2]) || 0,
-		wmin: parseFloat(row.values[3]) || 0,
-		L: parseFloat(row.values[4]) || 0,
-		gap: parseFloat(row.values[5]) || 0,
+		fleet: Math.trunc(parseNumber(row.values[1])),
+		W: parseNumber(row.values[2]),
+		wmin: parseNumber(row.values[3]),
+		L: parseNumber(row.values[4]),
+		gap: parseNumber(row.values[5]),
 	}));
 }
 
 export default function App() {
 	const rootRef = useRef<HTMLDivElement>(null);
-	const cargo = useGrowingRows(2, DUMMY_CARGO);
-	const fleet = useGrowingRows(6, DUMMY_VEHICLES);
+	const cargo = useGrowingRows(2, DUMMY_CARGO, "supreme-couscous:cargo");
+	const fleet = useGrowingRows(6, DUMMY_VEHICLES, "supreme-couscous:fleet");
 	const vehiclePalette = useMemo(
 		() => matchColors(fleet.rows.length, 75)[0],
 		[fleet.rows.length],
@@ -495,6 +533,13 @@ export default function App() {
 		window.addEventListener("resize", onResize);
 		return () => window.removeEventListener("resize", onResize);
 	}, []);
+
+	const handleClear = () => {
+		if (!window.confirm("Deseja limpar todos os parâmetros?")) return;
+		cargo.clear();
+		fleet.clear();
+		setSolved(null);
+	};
 
 	const handleSolve = () => {
 		const vehicles = toVehicles(fleet.rows);
@@ -541,6 +586,7 @@ export default function App() {
 							objective={objective}
 							setObjective={setObjective}
 							onSolve={handleSolve}
+							onClear={handleClear}
 						/>
 						<AssignmentsTable solved={solved} />
 					</div>
