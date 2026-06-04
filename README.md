@@ -69,7 +69,7 @@ $$
 \min \sum_{\text{trips}} c_{ijk}
 \qquad\text{(total charged cost)}
 \qquad\text{or}\qquad
-\min \;\#\{\text{trips}\}
+\min \; \bigl\lvert \{\text{trips}\} \bigr\rvert
 \qquad\text{(number of vehicles)}
 $$
 
