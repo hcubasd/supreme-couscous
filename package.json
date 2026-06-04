@@ -5,7 +5,8 @@
 	"scripts": {
 		"dev": "vite --host",
 		"build": "vite build",
-		"preview": "vite preview --host"
+		"preview": "vite preview --host",
+		"test": "vitest"
 	},
 	"devDependencies": {
 		"@tsconfig/vite-react": "^8.0.6",
@@ -13,7 +14,8 @@
 		"@types/react-dom": "^19.2.3",
 		"@vitejs/plugin-react": "^6.0.2",
 		"typescript": "^6.0.3",
-		"vite": "^8.0.14"
+		"vite": "^8.0.14",
+		"vitest": "^4.1.8"
 	},
 	"dependencies": {
 		"miniature-waffle": "^0.1.7",
