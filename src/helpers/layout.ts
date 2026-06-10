@@ -1,7 +1,7 @@
 import { colorBg, squeezeFg } from "psychic-potato";
 
 const ROOT_ID = "app-root";
-const COLOR = { startL: 75, endL: 100 };
+const COLOR = { from: 0.75, to: 1 };
 
 function getRoot(): HTMLDivElement {
 	const el = document.getElementById(ROOT_ID);
