@@ -293,6 +293,7 @@ function Controls({
 		<div className="bg" style={{ justifyContent: "center" }}>
 			<div
 				id="controls"
+				className="fg"
 				style={{
 					display: "flex",
 					alignItems: "center",
