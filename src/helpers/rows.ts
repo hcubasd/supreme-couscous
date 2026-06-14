@@ -103,5 +103,17 @@ export function useGrowingRows(
 	// the cleared state, so it survives a reload too.
 	const clear = () => setRows(normalize([], fieldCount));
 
-	return { rows, setCell, clear };
+	// Replace every row with the given values (e.g. a CSV import). Each incoming
+	// row is coerced to exactly fieldCount cells — short rows padded, long rows
+	// truncated — so a file with the wrong width can't corrupt the schema.
+	const replace = (incoming: string[][]) => {
+		const shaped = incoming.map((values) => {
+			const cells = values.slice(0, fieldCount);
+			while (cells.length < fieldCount) cells.push("");
+			return { id: makeId(), values: cells };
+		});
+		setRows(normalize(shaped, fieldCount));
+	};
+
+	return { rows, setCell, clear, replace };
 }

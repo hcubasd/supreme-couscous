@@ -4,11 +4,12 @@
 	--row-line-height: 1.4;
 }
 
-/* The controls panel is itself an fg, so squeezeFg sets its font size inline.
-   Its buttons, radios and labels inherit that size instead of reading
-   --font-size — both because form controls don't inherit a font by default, and
-   because the var is stale mid-search (squeezeFg only writes it on the fg). */
-#controls button,
+/* Buttons live inside an fg (the controls panel, the table headings), so they
+   inherit its squeezed font instead of their UA default — and they track it
+   live during squeezeFg's search, which writes the size on the fg, not --font-size.
+   The control-panel radios are in an fg too, so they inherit as well; param-row
+   inputs sit in bg divs and stay on --font-size (see the input rule below). */
+button,
 #controls input {
 	font: inherit;
 }

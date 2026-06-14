@@ -20,7 +20,7 @@ export function recolor(el: HTMLDivElement = getRoot()): void {
 export function refit(el: HTMLDivElement = getRoot()): void {
 	document.documentElement.style.setProperty(
 		"--font-size",
-		`${squeezeFg(el)}px`,
+		`${squeezeFg(el, .8)}px`,
 	);
 
 	// Param rows are input-driven and taller than plain text. Measure a real one

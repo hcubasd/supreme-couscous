@@ -141,6 +141,7 @@ describe("analyzeProblem", () => {
 			useLength: true,
 			useMinCharge: true,
 			useFleet: true,
+			useFreight: false,
 		});
 	});
 
@@ -156,6 +157,7 @@ describe("analyzeProblem", () => {
 			useLength: false,
 			useMinCharge: false,
 			useFleet: false,
+			useFreight: false,
 		});
 	});
 });
@@ -253,16 +255,18 @@ describe("solve – edge cases", () => {
 // --- solve: all optima ----------------------------------------------------
 
 describe("solve – all optimal compositions", () => {
-	it("enumerates every minimum-cost partition (cost is partition-invariant here)", () => {
-		// 3×50 in a W=100 vehicle, no min charge: total cost is always 150, so
-		// every feasible partition (sizes ≤2) is optimal: [0][1][2], [01][2], [0][12]
+	it("breaks cost ties by fewest trips (lexicographic tiebreaker)", () => {
+		// 3×50 in a W=100 vehicle, no min charge: cost is 150 for every feasible
+		// partition (sizes ≤2). The trip-count tiebreaker then drops the 3-trip
+		// all-singletons, leaving only the two 2-trip tilings: [01][2], [0][12].
 		const result = solveOk(
 			[item(50), item(50), item(50)],
 			[veh({ W: 100, fleet: 5 })],
 			"cost",
 		);
 		expect(result.objectiveValue).toBe(150);
-		expect(result.compositions).toHaveLength(3);
+		expect(result.compositions).toHaveLength(2);
+		for (const comp of result.compositions) expect(comp).toHaveLength(2);
 	});
 
 	it("enumerates every minimum-trip partition", () => {
