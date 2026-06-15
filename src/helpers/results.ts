@@ -5,25 +5,26 @@
 // sum isn't double-counted. Each composition is closed by a Total row.
 
 import { toCsv } from "./csv";
+import { DECIMAL, t } from "./locale";
 import type { SolveResult, Vehicle } from "./optimizer";
 
 const RESULTS_HEADER = [
-	"Composição",
-	"Ordem",
-	"Classe",
-	"Carreta",
-	"Quantidade de cargas",
-	"Cargas selecionadas",
-	"Peso utilizado (kg)",
-	"Comprimento utilizado (m)",
-	"Peso cobrado (kg)",
-	"Custo (R$)",
+	t.composition,
+	t.order,
+	t.klass,
+	t.trailer,
+	t.cargoCount,
+	t.selectedCargo,
+	t.weightUsedKg,
+	t.lengthUsedM,
+	t.chargedWeightKg,
+	t.cost,
 ];
 
-// Plain pt-BR numeric string (comma decimal, no thousands group), rounded to drop
-// the float dust that gap sums accumulate.
+// Plain locale numeric string (locale decimal, no thousands group), rounded to
+// drop the float dust that gap sums accumulate.
 const num = (n: number): string =>
-	String(Math.round(n * 1000) / 1000).replace(".", ",");
+	String(Math.round(n * 1000) / 1000).replace(".", DECIMAL);
 
 export function buildResultsCsv(
 	result: SolveResult,

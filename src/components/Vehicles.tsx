@@ -7,6 +7,7 @@ import {
 } from "../helpers/fleet";
 import { type Rgb, toRgb } from "../helpers/format";
 import { recolor } from "../helpers/layout";
+import { csvNumber, localizeDecimal, t } from "../helpers/locale";
 import { ExportButton } from "./ExportButton";
 import { ImportButton } from "./ImportButton";
 import { TableHeading } from "./TableHeading";
@@ -14,19 +15,19 @@ import { TableLabel } from "./primitives";
 import { Vehicle } from "./Vehicle";
 
 const CLASS_HEADERS = [
-	"Classe",
-	"Quantidade disponível",
-	"Peso máximo (kg)",
-	"Custo mínimo (R$)",
-	"Frete (R$/kg)",
-	"Eixos",
-	"Pedágio (R$/eixo)",
+	t.klass,
+	t.availableQty,
+	t.maxWeightKg,
+	t.minCharge,
+	t.freightPerKg,
+	t.axles,
+	t.tollPerAxle,
 ];
 const TRAILER_HEADERS = [
-	"Carreta",
-	"Capacidade da carreta (kg)",
-	"Comprimento da carreta (m)",
-	"Espaço entre cargas (m)",
+	t.trailer,
+	t.trailerCapacityKg,
+	t.trailerLengthM,
+	t.spacingM,
 ];
 
 // The vehicle (fleet) parameter table: heading + the 11 column labels + one
@@ -55,19 +56,23 @@ export function Vehicles({
 	return (
 		<div className="bg" style={{ flex: 1, flexDirection: "column" }}>
 			<TableHeading
-				title="Veículos"
+				title={t.vehicles}
 				actions={
 					<>
 						<ImportButton
 							columns={CLASS_HEADERS.length + TRAILER_HEADERS.length}
-							onRows={(rows) => fleet.replace(rowsToClasses(rows))}
+							onRows={(rows) =>
+								fleet.replace(
+									rowsToClasses(rows.map((row) => row.map(localizeDecimal))),
+								)
+							}
 						/>
 						<ExportButton
-							filename="veiculos.csv"
+							filename={t.vehiclesFile}
 							build={() =>
 								toCsv(
 									[...CLASS_HEADERS, ...TRAILER_HEADERS],
-									classesToRows(classes),
+									classesToRows(classes).map((row) => row.map(csvNumber)),
 								)
 							}
 						/>

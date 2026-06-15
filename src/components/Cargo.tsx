@@ -1,3 +1,4 @@
+import { localizeDecimal } from "../helpers/locale";
 import { MUTED, NumberCell, Parameter, TableCell } from "./primitives";
 
 export const DUMMY_CARGO: string[][] = [
@@ -6,7 +7,7 @@ export const DUMMY_CARGO: string[][] = [
 	["8000", "1,4"],
 	["15000", "2,2"],
 	["9000", "1,6"],
-];
+].map((row) => row.map(localizeDecimal));
 
 // One cargo row: its order number (muted on the trailing empty "new row") and the
 // weight/length fields.

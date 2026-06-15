@@ -1,5 +1,6 @@
 import { useRef } from "react";
 import { importRows } from "../helpers/csv";
+import { t } from "../helpers/locale";
 
 // A file picker dressed as a plain button: the visible button proxies a click to
 // a hidden file input, reads the chosen CSV, validates it against the expected
@@ -16,7 +17,7 @@ export function ImportButton({
 	return (
 		<>
 			<button type="button" onClick={() => inputRef.current?.click()}>
-				Importar
+				{t.importBtn}
 			</button>
 			<input
 				ref={inputRef}

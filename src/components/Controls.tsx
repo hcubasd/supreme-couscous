@@ -1,4 +1,5 @@
 import type { ReactNode } from "react";
+import { t } from "../helpers/locale";
 import type { Objective } from "../helpers/optimizer";
 
 // The objective radios and the action buttons. Everything sits in one fg so
@@ -43,7 +44,7 @@ export function Controls({
 						checked={objective === "cost"}
 						onChange={() => setObjective("cost")}
 					/>
-					<span> Minimizar custo </span>
+					<span> {t.minimizeCost} </span>
 				</label>
 				<label style={{ display: "flex", alignItems: "center" }}>
 					<input
@@ -54,13 +55,13 @@ export function Controls({
 						checked={objective === "vehicles"}
 						onChange={() => setObjective("vehicles")}
 					/>
-					Minimizar veículos
+					{t.minimizeVehicles}
 				</label>
 				<button id="solve-button" type="button" onClick={onSolve}>
-					Calcular
+					{t.calculate}
 				</button>
 				<button id="clear-button" type="button" onClick={onClear}>
-					Limpar
+					{t.clear}
 				</button>
 				{actions}
 			</div>

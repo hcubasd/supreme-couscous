@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { localizeDecimal } from "./locale";
 
 // The fleet is a nested structure: a list of vehicle classes, each with its own
 // per-class fields and a variable list of trailers (carretas). The UI shows it
@@ -74,7 +75,10 @@ export const DUMMY_FLEET: StoredClass[] = [
 			{ values: ["16000", "7", "0,5"] },
 		],
 	},
-];
+].map((c) => ({
+	values: c.values.map(localizeDecimal),
+	trailers: c.trailers.map((tr) => ({ values: tr.values.map(localizeDecimal) })),
+}));
 
 function loadStored(key: string): ClassRow[] | null {
 	try {

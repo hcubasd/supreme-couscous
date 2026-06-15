@@ -8,6 +8,7 @@ import { Results } from "./components/Results";
 import { DUMMY_FLEET, useGrowingFleet } from "./helpers/fleet";
 import { toRgb } from "./helpers/format";
 import { recolor, refit } from "./helpers/layout";
+import { LOCALE, t } from "./helpers/locale";
 import { toItems, toVehicles } from "./helpers/mapping";
 import { type Objective, solve } from "./helpers/optimizer";
 import { useGrowingRows } from "./helpers/rows";
@@ -26,6 +27,7 @@ export default function App() {
 	const [solved, setSolved] = useState<Solved | null>(null);
 
 	useEffect(() => {
+		document.documentElement.lang = LOCALE;
 		const root = rootRef.current;
 		if (!root) throw new Error("No root element found");
 		recolor(root);
@@ -36,7 +38,7 @@ export default function App() {
 	}, []);
 
 	const handleClear = () => {
-		if (!window.confirm("Deseja limpar todos os parâmetros?")) return;
+		if (!window.confirm(t.clearConfirm)) return;
 		cargo.clear();
 		fleet.clear();
 		setSolved(null);
@@ -70,9 +72,7 @@ export default function App() {
 			style={{ flexDirection: "column", height: "100%" }}
 		>
 			<Label>
-				<h1>
-					Alocador exato de frota para operações de transporte de cargas pesadas
-				</h1>
+				<h1>{t.appTitle}</h1>
 			</Label>
 			<div className="bg" style={{ flex: 1, flexDirection: "column" }}>
 				<Parameters cargo={cargo} fleet={fleet} palette={vehiclePalette} />

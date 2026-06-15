@@ -1,3 +1,4 @@
+import { t } from "../helpers/locale";
 import type { Objective } from "../helpers/optimizer";
 import { buildResultsCsv } from "../helpers/results";
 import { Assignments, type Solved } from "./Assignments";
@@ -24,7 +25,7 @@ export function Results({
 	return (
 		<div className="bg" style={{ flex: 1, flexDirection: "column" }}>
 			<Label>
-				<h2>Resultados</h2>
+				<h2>{t.results}</h2>
 			</Label>
 			<div className="bg" style={{ flex: 1, flexDirection: "column" }}>
 				<Controls
@@ -36,7 +37,7 @@ export function Results({
 					// disabled until there's a result to export.
 					actions={
 						<ExportButton
-							filename="resultado.csv"
+							filename={t.resultsFile}
 							disabled={solved?.result.status !== "success"}
 							build={() =>
 								solved ? buildResultsCsv(solved.result, solved.vehicles) : ""

@@ -1,5 +1,6 @@
 import type { FleetController } from "../helpers/fleet";
 import type { Rgb } from "../helpers/format";
+import { t } from "../helpers/locale";
 import type { RowController } from "../helpers/rows";
 import { Cargoes } from "./Cargoes";
 import { Label } from "./primitives";
@@ -19,7 +20,7 @@ export function Parameters({
 	return (
 		<div className="bg" style={{ flex: 1, flexDirection: "column" }}>
 			<Label>
-				<h2>Parâmetros</h2>
+				<h2>{t.parameters}</h2>
 			</Label>
 			<div className="bg" style={{ flex: 1, flexDirection: "column" }}>
 				<Cargoes

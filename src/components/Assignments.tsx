@@ -1,6 +1,7 @@
 import { useLayoutEffect } from "react";
 import { fmt } from "../helpers/format";
 import { recolor } from "../helpers/layout";
+import { t } from "../helpers/locale";
 import type { SolveResult, Vehicle } from "../helpers/optimizer";
 import { Assignment } from "./Assignment";
 import { TableCell, TableLabel } from "./primitives";
@@ -17,15 +18,15 @@ export type Solved = {
 // Split to mirror an AssignedVehicle's nesting: identity (Ordem, Classe), then the
 // flex:5 per-carreta group, then the rig-level costs (Peso cobrado, Custo). Same
 // nesting depth ⇒ the 1px gaps line up with the body rows.
-const LEFT_HEADERS = ["Ordem", "Classe"];
+const LEFT_HEADERS = [t.order, t.klass];
 const CARRETA_HEADERS = [
-	"Carreta",
-	"Quantidade de cargas",
-	"Cargas selecionadas",
-	"Peso utilizado (kg)",
-	"Comprimento utilizado (m)",
+	t.trailer,
+	t.cargoCount,
+	t.selectedCargo,
+	t.weightUsedKg,
+	t.lengthUsedM,
 ];
-const RIGHT_HEADERS = ["Peso cobrado (kg)", "Custo (R$)"];
+const RIGHT_HEADERS = [t.chargedWeightKg, t.cost];
 
 // The results table: a single column header over a scrolling list of Assignments
 // (one per optimal composition in the sample).
@@ -43,7 +44,7 @@ export function Assignments({ solved }: { solved: Solved | null }) {
 		<div className="bg" style={{ flex: 1, flexDirection: "column" }}>
 			<div className="bg">
 				<TableLabel>
-					<h4>Composição</h4>
+					<h4>{t.composition}</h4>
 				</TableLabel>
 				<div className="bg" style={{ flex: 9, minWidth: 0 }}>
 					{LEFT_HEADERS.map((header) => (
@@ -85,8 +86,8 @@ function AssignmentsBody({ solved }: { solved: Solved | null }) {
 		// valid-but-unsolvable problem just reports that nothing was found.
 		const message =
 			result.status === "invalid"
-				? result.message
-				: "Nenhuma composição encontrada";
+				? t.errors[result.messageKey]
+				: t.noComposition;
 		return (
 			<div
 				className="bg"
@@ -115,8 +116,10 @@ function AssignmentsBody({ solved }: { solved: Solved | null }) {
 					style={{ flexShrink: 0, minHeight: "var(--row-height, 0px)" }}
 				>
 					<TableCell>
-						Mostrando {result.compositions.length} de{" "}
-						{fmt(result.compositionCount)} composições ótimas
+						{t.showingOptima(
+							String(result.compositions.length),
+							fmt(result.compositionCount),
+						)}
 					</TableCell>
 				</div>
 			)}

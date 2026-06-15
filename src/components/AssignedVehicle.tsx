@@ -1,4 +1,4 @@
-import { fmt, fmtBRL, fmtLen } from "../helpers/format";
+import { fmt, fmtLen, fmtMoney } from "../helpers/format";
 import type { Trip } from "../helpers/optimizer";
 import { TableCell } from "./primitives";
 
@@ -49,7 +49,7 @@ export function AssignedVehicle({
 				))}
 			</div>
 			<TableCell>{fmt(trip.c)}</TableCell>
-			<TableCell>{fmtBRL(trip.r)}</TableCell>
+			<TableCell>{fmtMoney(trip.r)}</TableCell>
 		</div>
 	);
 }

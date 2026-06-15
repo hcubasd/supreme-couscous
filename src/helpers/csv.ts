@@ -12,6 +12,8 @@
 // canonical comma-decimal form. Export writes the header and uses ';' (pt-BR),
 // matching the comma-decimal values the inputs already store.
 
+import { CSV_DELIMITER } from "./locale";
+
 type Delimiter = ";" | ",";
 
 // Scan outside quotes: a semicolon anywhere means the file is semicolon-delimited.
@@ -100,11 +102,14 @@ export function importRows(text: string, columns: number): ImportResult {
 	};
 }
 
-// Build CSV text from a header and rows: ';'-delimited (pt-BR), CRLF line endings,
-// RFC-4180 quoting for any field carrying a delimiter, quote, or newline.
+// Build CSV text from a header and rows, delimited by the locale's CSV delimiter
+// (';' for pt-BR, ',' for en-US), CRLF line endings, RFC-4180 quoting for any
+// field carrying the delimiter, a quote, or a newline.
 export function toCsv(header: string[], rows: string[][]): string {
 	const esc = (field: string) =>
-		/[;"\n\r]/.test(field) ? `"${field.replace(/"/g, '""')}"` : field;
-	const line = (fields: string[]) => fields.map(esc).join(";");
+		field.includes(CSV_DELIMITER) || /["\n\r]/.test(field)
+			? `"${field.replace(/"/g, '""')}"`
+			: field;
+	const line = (fields: string[]) => fields.map(esc).join(CSV_DELIMITER);
 	return [header, ...rows].map(line).join("\r\n");
 }

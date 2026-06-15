@@ -32,9 +32,13 @@ export type Vehicle = {
 
 export type Objective = "cost" | "vehicles";
 
+// The validation failures the optimizer can report. The UI maps these keys to
+// localized text — the optimizer stays free of UI strings.
+export type InvalidKey = "needCargoAndVehicle" | "needCarreta" | "nonNegative";
+
 export type Analysis =
-	| { valid: false; message: string }
-	| { valid: true; message: string };
+	| { valid: false; messageKey: InvalidKey }
+	| { valid: true };
 
 // One trailer's load within a trip: which cargos ride it (global indices) and the
 // physical quantities of a single compartment. Additive — the trailers' values
@@ -62,15 +66,20 @@ export type Trip = {
 
 export type SolveResult =
 	| {
-			status: "invalid" | "infeasible";
-			message: string;
+			status: "invalid";
+			messageKey: InvalidKey;
+			compositions: null;
+			objectiveValue: null;
+			statesExplored: number;
+	  }
+	| {
+			status: "infeasible";
 			compositions: null;
 			objectiveValue: null;
 			statesExplored: number;
 	  }
 	| {
 			status: "success";
-			message: string;
 			// Partitions achieving the optimal objective value, capped at
 			// MAX_COMPOSITIONS — a sample when ties are abundant. compositionCount
 			// reports how many optima actually exist.
@@ -92,17 +101,11 @@ const EPS = 1e-9;
 // least one cargo and one class. Feasibility itself is reported by solve, not here.
 export function analyzeProblem(items: Item[], vehicles: Vehicle[]): Analysis {
 	if (!items.length || !vehicles.length) {
-		return {
-			valid: false,
-			message: "Informe ao menos uma carga e uma classe de veículo.",
-		};
+		return { valid: false, messageKey: "needCargoAndVehicle" };
 	}
 
 	if (vehicles.some((v) => v.carretas.length === 0)) {
-		return {
-			valid: false,
-			message: "Cada classe de veículo precisa de ao menos uma carreta.",
-		};
+		return { valid: false, messageKey: "needCarreta" };
 	}
 
 	const itemBad = items.some((i) => i.w < 0 || i.l < 0);
@@ -117,13 +120,10 @@ export function analyzeProblem(items: Item[], vehicles: Vehicle[]): Analysis {
 			v.carretas.some((c) => c.capacity < 0 || c.length < 0 || c.gap < 0),
 	);
 	if (itemBad || vehicleBad) {
-		return {
-			valid: false,
-			message: "Use apenas valores maiores ou iguais a zero.",
-		};
+		return { valid: false, messageKey: "nonNegative" };
 	}
 
-	return { valid: true, message: "pronto para calcular" };
+	return { valid: true };
 }
 
 // Occupied length of m cargos sharing a trailer: Σℓ + (m−1)·gap.
@@ -339,7 +339,7 @@ export function solve(
 	if (!analysis.valid) {
 		return {
 			status: "invalid",
-			message: analysis.message,
+			messageKey: analysis.messageKey,
 			compositions: null,
 			objectiveValue: null,
 			statesExplored: 0,
@@ -416,7 +416,6 @@ export function solve(
 	if (bestCost === null) {
 		return {
 			status: "infeasible",
-			message: "Nenhuma solução viável para a configuração informada.",
 			compositions: null,
 			objectiveValue: null,
 			statesExplored: best.size,
@@ -479,7 +478,6 @@ export function solve(
 
 	return {
 		status: "success",
-		message: "pronto",
 		compositions,
 		compositionCount,
 		objectiveValue: optimalCost[0],

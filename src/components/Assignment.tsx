@@ -1,4 +1,4 @@
-import { fmt, fmtBRL, fmtLen } from "../helpers/format";
+import { fmt, fmtLen, fmtMoney } from "../helpers/format";
 import type { Trip, Vehicle } from "../helpers/optimizer";
 import { AssignedVehicle } from "./AssignedVehicle";
 import { BOLD, TableCell } from "./primitives";
@@ -70,7 +70,7 @@ export function Assignment({
 						<TableCell style={BOLD}>{fmtLen(totalL)}</TableCell>
 					</div>
 					<TableCell style={BOLD}>{fmt(totalC)}</TableCell>
-					<TableCell style={BOLD}>{fmtBRL(totalR)}</TableCell>
+					<TableCell style={BOLD}>{fmtMoney(totalR)}</TableCell>
 				</div>
 			</div>
 		</div>

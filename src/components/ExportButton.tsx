@@ -1,3 +1,5 @@
+import { t } from "../helpers/locale";
+
 // A plain button that downloads a CSV. `build` is called on click to produce the
 // text (so it always reflects the current table), then handed to the browser as a
 // file download. A UTF-8 BOM is prepended so Excel reads the accented headers.
@@ -24,7 +26,7 @@ export function ExportButton({
 
 	return (
 		<button type="button" onClick={onClick} disabled={disabled}>
-			Exportar
+			{t.exportBtn}
 		</button>
 	);
 }

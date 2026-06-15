@@ -1,6 +1,7 @@
 import { useLayoutEffect } from "react";
 import { toCsv } from "../helpers/csv";
 import { recolor } from "../helpers/layout";
+import { csvNumber, localizeDecimal, t } from "../helpers/locale";
 import type { Row } from "../helpers/rows";
 import { Cargo } from "./Cargo";
 import { ExportButton } from "./ExportButton";
@@ -8,7 +9,7 @@ import { ImportButton } from "./ImportButton";
 import { TableHeading } from "./TableHeading";
 import { TableLabel } from "./primitives";
 
-const CARGO_HEADER = ["Peso (kg)", "Comprimento (m)"];
+const CARGO_HEADER = [t.weightKg, t.lengthM];
 
 // The cargo parameter table: heading + column labels + the editable rows.
 export function Cargoes({
@@ -35,18 +36,24 @@ export function Cargoes({
 	return (
 		<div className="bg" style={{ flex: 1, flexDirection: "column" }}>
 			<TableHeading
-				title="Cargas"
+				title={t.cargo}
 				actions={
 					<>
-						<ImportButton columns={2} onRows={onImport} />
+						<ImportButton
+							columns={2}
+							onRows={(imported) =>
+								onImport(imported.map((row) => row.map(localizeDecimal)))
+							}
+						/>
 						<ExportButton
-							filename="cargas.csv"
+							filename={t.cargoFile}
 							build={() =>
 								toCsv(
 									CARGO_HEADER,
 									rows
 										.map((row) => row.values)
-										.filter((values) => values.some((v) => v.trim() !== "")),
+										.filter((values) => values.some((v) => v.trim() !== ""))
+										.map((values) => values.map(csvNumber)),
 								)
 							}
 						/>
@@ -56,13 +63,13 @@ export function Cargoes({
 			<div className="bg" style={{ flex: 1, flexDirection: "column" }}>
 				<div className="bg">
 					<TableLabel>
-						<h4>Ordem</h4>
+						<h4>{t.order}</h4>
 					</TableLabel>
 					<TableLabel>
-						<h4>Peso (kg)</h4>
+						<h4>{t.weightKg}</h4>
 					</TableLabel>
 					<TableLabel>
-						<h4>Comprimento (m)</h4>
+						<h4>{t.lengthM}</h4>
 					</TableLabel>
 				</div>
 				<div
