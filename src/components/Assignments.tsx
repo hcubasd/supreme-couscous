@@ -14,17 +14,18 @@ export type Solved = {
 	colors: string[];
 };
 
-const HEADERS = [
-	"Ordem",
-	"Classe",
+// Split to mirror an AssignedVehicle's nesting: identity (Ordem, Classe), then the
+// flex:5 per-carreta group, then the rig-level costs (Peso cobrado, Custo). Same
+// nesting depth ⇒ the 1px gaps line up with the body rows.
+const LEFT_HEADERS = ["Ordem", "Classe"];
+const CARRETA_HEADERS = [
 	"Carreta",
 	"Quantidade de cargas",
 	"Cargas selecionadas",
 	"Peso utilizado (kg)",
 	"Comprimento utilizado (m)",
-	"Peso cobrado (kg)",
-	"Custo (R$)",
 ];
+const RIGHT_HEADERS = ["Peso cobrado (kg)", "Custo (R$)"];
 
 // The results table: a single column header over a scrolling list of Assignments
 // (one per optimal composition in the sample).
@@ -41,7 +42,19 @@ export function Assignments({ solved }: { solved: Solved | null }) {
 	return (
 		<div className="bg" style={{ flex: 1, flexDirection: "column" }}>
 			<div className="bg">
-				{HEADERS.map((header) => (
+				{LEFT_HEADERS.map((header) => (
+					<TableLabel key={header}>
+						<h4>{header}</h4>
+					</TableLabel>
+				))}
+				<div className="bg" style={{ flex: 5, minWidth: 0 }}>
+					{CARRETA_HEADERS.map((header) => (
+						<TableLabel key={header}>
+							<h4>{header}</h4>
+						</TableLabel>
+					))}
+				</div>
+				{RIGHT_HEADERS.map((header) => (
 					<TableLabel key={header}>
 						<h4>{header}</h4>
 					</TableLabel>
@@ -90,8 +103,6 @@ function AssignmentsBody({ solved }: { solved: Solved | null }) {
 					total={result.compositionCount}
 					vehicles={vehicles}
 					colors={colors}
-					useFreight={result.config.useFreight}
-					useLength={result.config.useLength}
 				/>
 			))}
 			{result.compositionCount > result.compositions.length && (

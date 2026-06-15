@@ -16,15 +16,11 @@ export function AssignedVehicle({
 	name,
 	color,
 	trip,
-	useFreight,
-	useLength,
 }: {
 	order: number;
 	name: string;
 	color: string;
 	trip: Trip;
-	useFreight: boolean;
-	useLength: boolean;
 }) {
 	const beds = trip.beds ?? [];
 	return (
@@ -48,12 +44,12 @@ export function AssignedVehicle({
 							{trailer.cargos.map((i) => i + 1).join(", ")}
 						</TableCell>
 						<TableCell>{fmt(trailer.w)}</TableCell>
-						<TableCell>{useLength ? fmtLen(trailer.l) : "—"}</TableCell>
+						<TableCell>{fmtLen(trailer.l)}</TableCell>
 					</div>
 				))}
 			</div>
 			<TableCell>{fmt(trip.c)}</TableCell>
-			<TableCell>{useFreight ? fmtBRL(trip.r) : "—"}</TableCell>
+			<TableCell>{fmtBRL(trip.r)}</TableCell>
 		</div>
 	);
 }

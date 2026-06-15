@@ -1,8 +1,4 @@
-import { matchGrays } from "miniature-waffle";
-import { NumberCell, Parameter, TableCell } from "./primitives";
-
-const [mutedGray] = matchGrays(1, 75);
-const MUTED = `rgb(${mutedGray.r}, ${mutedGray.g}, ${mutedGray.b})`;
+import { MUTED, NumberCell, Parameter, TableCell } from "./primitives";
 
 export const DUMMY_CARGO: string[][] = [
 	["10000", "1,5"],
@@ -25,6 +21,10 @@ export function Cargo({
 	onChange: (field: number, value: string) => void;
 	muted?: boolean;
 }) {
+	// A "started" row (any cell typed in) requires all its cells, so the form's
+	// native validity check flags a half-filled row on Calcular. The trailing
+	// ghost row stays empty and exempt.
+	const started = values.some((v) => v.trim() !== "");
 	return (
 		<Parameter>
 			<TableCell
@@ -36,8 +36,16 @@ export function Cargo({
 			>
 				{order}
 			</TableCell>
-			<NumberCell value={values[0]} onChange={(v) => onChange(0, v)} />
-			<NumberCell value={values[1]} onChange={(v) => onChange(1, v)} />
+			<NumberCell
+				value={values[0]}
+				onChange={(v) => onChange(0, v)}
+				required={started}
+			/>
+			<NumberCell
+				value={values[1]}
+				onChange={(v) => onChange(1, v)}
+				required={started}
+			/>
 		</Parameter>
 	);
 }

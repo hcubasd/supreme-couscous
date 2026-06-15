@@ -9,8 +9,10 @@ export function TableHeading({
 	onImport,
 }: {
 	title: string;
-	columns: number;
-	onImport: (rows: string[][]) => void;
+	// Import is optional: a table gets an Importar button only when both are given
+	// (the vehicle table's import/export lands in a later phase).
+	columns?: number;
+	onImport?: (rows: string[][]) => void;
 }) {
 	return (
 		<div
@@ -27,7 +29,9 @@ export function TableHeading({
 				}}
 			>
 				<h3>{title}</h3>
-				<ImportButton columns={columns} onRows={onImport} />
+				{columns !== undefined && onImport && (
+					<ImportButton columns={columns} onRows={onImport} />
+				)}
 			</div>
 		</div>
 	);

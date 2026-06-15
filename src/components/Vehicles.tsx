@@ -1,78 +1,83 @@
 import { useLayoutEffect } from "react";
+import type { FleetController } from "../helpers/fleet";
 import { type Rgb, toRgb } from "../helpers/format";
 import { recolor } from "../helpers/layout";
-import type { Row } from "../helpers/rows";
 import { TableHeading } from "./TableHeading";
 import { TableLabel } from "./primitives";
 import { Vehicle } from "./Vehicle";
 
-// The vehicle (fleet) parameter table: heading + column labels + the editable
-// rows, each tinted with its palette color.
+const CLASS_HEADERS = [
+	"Classe",
+	"Quantidade disponível",
+	"Peso máximo (kg)",
+	"Custo mínimo (R$)",
+	"Frete (R$/kg)",
+	"Eixos",
+	"Pedágio (R$/eixo)",
+];
+const TRAILER_HEADERS = [
+	"Carreta",
+	"Capacidade da carreta (kg)",
+	"Comprimento da carreta (m)",
+	"Espaço entre cargas (m)",
+];
+
+// The vehicle (fleet) parameter table: heading + the 11 column labels + one
+// editable class block per vehicle class. The trailer columns (Carreta + three
+// physical fields) are grouped under each class's tall per-class cells.
 export function Vehicles({
-	rows,
-	setCell,
+	fleet,
 	palette,
-	onImport,
 }: {
-	rows: Row[];
-	setCell: (id: string, field: number, value: string) => void;
+	fleet: FleetController;
 	palette: Rgb[];
-	onImport: (rows: string[][]) => void;
 }) {
-	// See Cargoes: key on row identity so imports (which mint fresh ids, often at
-	// an unchanged count) recolor the new nodes, without firing on cell edits. No
-	// squeeze here — that runs only on mount and resize.
-	const rowKey = rows.map((row) => row.id).join(",");
+	const { classes, setClassCell, setTrailerCell } = fleet;
+
+	// Recolor when the structure changes (a class or trailer added/removed) so
+	// freshly mounted bg divs get their color. Key on the class/trailer identities,
+	// not cell values, so this doesn't fire on every keystroke. No squeeze here —
+	// that runs only on mount and resize.
+	const structureKey = classes
+		.map((c) => `${c.id}:${c.trailers.map((t) => t.id).join("-")}`)
+		.join(",");
 	useLayoutEffect(() => {
 		recolor();
-	}, [rowKey]);
+	}, [structureKey]);
 
 	return (
 		<div className="bg" style={{ flex: 1, flexDirection: "column" }}>
-			<TableHeading title="Veículos" columns={10} onImport={onImport} />
+			<TableHeading title="Veículos" />
 			<div className="bg" style={{ flex: 1, flexDirection: "column" }}>
+				{/* Mirror each Vehicle block's nesting (7 class cells + a flex:4 trailer
+				    group) so the 1px gaps line up at the same nesting depth. */}
 				<div className="bg">
-					<TableLabel>
-						<h4>Classe</h4>
-					</TableLabel>
-					<TableLabel>
-						<h4>Quantidade disponível</h4>
-					</TableLabel>
-					<TableLabel>
-						<h4>Capacidade de peso (kg)</h4>
-					</TableLabel>
-					<TableLabel>
-						<h4>Quantidade de carretas</h4>
-					</TableLabel>
-					<TableLabel>
-						<h4>Comprimento da carreta (m)</h4>
-					</TableLabel>
-					<TableLabel>
-						<h4>Espaçamento (m)</h4>
-					</TableLabel>
-					<TableLabel>
-						<h4>Peso mínimo (kg)</h4>
-					</TableLabel>
-					<TableLabel>
-						<h4>Frete (R$/kg)</h4>
-					</TableLabel>
-					<TableLabel>
-						<h4>Eixos</h4>
-					</TableLabel>
-					<TableLabel>
-						<h4>Pedágio (R$/eixo)</h4>
-					</TableLabel>
+					{CLASS_HEADERS.map((header) => (
+						<TableLabel key={header}>
+							<h4>{header}</h4>
+						</TableLabel>
+					))}
+					<div className="bg" style={{ flex: 4, minWidth: 0 }}>
+						{TRAILER_HEADERS.map((header) => (
+							<TableLabel key={header}>
+								<h4>{header}</h4>
+							</TableLabel>
+						))}
+					</div>
 				</div>
 				<div
 					className="bg"
 					style={{ flex: 1, flexDirection: "column", overflowY: "auto" }}
 				>
-					{rows.map((row, i) => (
+					{classes.map((klass, i) => (
 						<Vehicle
-							key={row.id}
-							values={row.values}
-							onChange={(field, value) => setCell(row.id, field, value)}
+							key={klass.id}
+							klass={klass}
 							color={toRgb(palette[i])}
+							onClassCell={(field, value) => setClassCell(klass.id, field, value)}
+							onTrailerCell={(trailerId, field, value) =>
+								setTrailerCell(klass.id, trailerId, field, value)
+							}
 						/>
 					))}
 				</div>

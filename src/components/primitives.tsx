@@ -8,9 +8,14 @@
 //           and crop (overflow hidden) rather than driving the fit. Use Cell/
 //           TableCell. squeezeFg's collectPairs ignores them (they aren't .fg).
 
+import { matchGrays } from "miniature-waffle";
 import type { CSSProperties, ReactNode } from "react";
 
 export const BOLD: CSSProperties = { fontWeight: "bold" };
+
+// Muted gray for ghost rows (the trailing empty "new" row's auto number).
+const [mutedGray] = matchGrays(1, 75);
+export const MUTED = `rgb(${mutedGray.r}, ${mutedGray.g}, ${mutedGray.b})`;
 
 // A centered chrome label: content sits in an fg so squeezeFg sizes it, nowrap
 // keeps it on one line. Stretches to its parent's height (flex default), so the
@@ -104,15 +109,23 @@ export function Parameter({ children }: { children: ReactNode }) {
 export function NumberCell({
 	value,
 	onChange,
+	required,
+	style,
 }: {
 	value: string;
 	onChange: (value: string) => void;
+	required?: boolean;
+	style?: CSSProperties;
 }) {
 	return (
-		<div className="bg" style={{ flex: 1, minWidth: 0 }}>
+		<div
+			className="bg"
+			style={{ flex: 1, minWidth: 0, justifyContent: "center", alignItems: "center", ...style }}
+		>
 			<input
 				type="text"
 				inputMode="decimal"
+				required={required}
 				style={{ width: "100%" }}
 				value={value}
 				onChange={(e) => {

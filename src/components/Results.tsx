@@ -9,13 +9,11 @@ import { Label } from "./primitives";
 export function Results({
 	objective,
 	setObjective,
-	onSolve,
 	onClear,
 	solved,
 }: {
 	objective: Objective;
 	setObjective: (objective: Objective) => void;
-	onSolve: () => void;
 	onClear: () => void;
 	solved: Solved | null;
 }) {
@@ -28,7 +26,6 @@ export function Results({
 				<Controls
 					objective={objective}
 					setObjective={setObjective}
-					onSolve={onSolve}
 					onClear={onClear}
 				/>
 				<Assignments solved={solved} />

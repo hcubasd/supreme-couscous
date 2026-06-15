@@ -1,41 +1,70 @@
-import { NumberCell, Parameter } from "./primitives";
+import type { ClassRow } from "../helpers/fleet";
+import { Carreta } from "./Carreta";
+import { NumberCell } from "./primitives";
 
-// Columns: Classe, Quantidade disponível (frota), Capacidade de peso, Quantidade
-// de carretas, Comprimento da carreta, Espaçamento, Peso mínimo, Frete (R$/kg),
-// Eixos, Pedágio (R$/eixo).
-export const DUMMY_VEHICLES: string[][] = [
-	["Classe A", "10", "15000", "1", "5", "0,2", "10000", "0,45", "9", "134,4"],
-	["Classe B", "2", "35000", "2", "14", "0,5", "25000", "0,38", "7", "134,4"],
-];
-
-// One vehicle row: the free-text class name (tinted with its palette color) plus
-// the nine numeric parameter fields.
+// One vehicle class, laid out like an AssignedVehicle: the seven per-class fields
+// stand as tall cells the full height of the class's trailers, while the trailer
+// column (flex 4 = the Carreta number + three trailer fields) stacks one editable
+// row per carreta. The class name is the unique identifier; carreta numbers are
+// automatic. A "started" class/trailer marks its inputs required so the form flags
+// a half-filled entry on Calcular.
 export function Vehicle({
-	values,
-	onChange,
+	klass,
 	color,
+	onClassCell,
+	onTrailerCell,
 }: {
-	values: string[];
-	onChange: (field: number, value: string) => void;
+	klass: ClassRow;
 	color?: string;
+	onClassCell: (field: number, value: string) => void;
+	onTrailerCell: (trailerId: string, field: number, value: string) => void;
 }) {
+	const { values, trailers } = klass;
+	const classStarted =
+		values.some((v) => v.trim() !== "") ||
+		trailers.some((t) => t.values.some((v) => v.trim() !== ""));
+
 	return (
-		<Parameter>
-			<div className="bg" style={{ flex: 1, minWidth: 0 }}>
+		<div className="bg">
+			<div
+				className="bg"
+				style={{ flex: 1, minWidth: 0, justifyContent: "center", alignItems: "center" }}
+			>
 				<input
 					type="text"
+					required={classStarted}
 					style={{ width: "100%", color }}
 					value={values[0]}
-					onChange={(e) => onChange(0, e.target.value)}
+					onChange={(e) => onClassCell(0, e.target.value)}
 				/>
 			</div>
-			{[1, 2, 3, 4, 5, 6, 7, 8, 9].map((field) => (
+			{[1, 2, 3, 4, 5, 6].map((field) => (
 				<NumberCell
 					key={field}
 					value={values[field]}
-					onChange={(v) => onChange(field, v)}
+					onChange={(v) => onClassCell(field, v)}
+					required={classStarted}
 				/>
 			))}
-		</Parameter>
+			<div
+				className="bg"
+				style={{ flex: 4, flexDirection: "column", minWidth: 0 }}
+			>
+				{trailers.map((trailer, i) => {
+					const trailerStarted = trailer.values.some((v) => v.trim() !== "");
+					const ghost = i === trailers.length - 1 && !trailerStarted;
+					return (
+						<Carreta
+							key={trailer.id}
+							number={i + 1}
+							values={trailer.values}
+							muted={ghost}
+							required={trailerStarted}
+							onChange={(field, value) => onTrailerCell(trailer.id, field, value)}
+						/>
+					);
+				})}
+			</div>
+		</div>
 	);
 }

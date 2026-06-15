@@ -1,45 +1,45 @@
-// Pure sequential-partitioning optimizer ported from automatic-goggles.
-// Given an ordered list of cargos and a limited fleet of vehicle classes, it
-// finds the cheapest way to cut the sequence into contiguous trips. No DOM, no
-// I/O — just the math.
+// Pure sequential-partitioning optimizer.
+// Given an ordered list of cargos and a fleet of vehicle classes, find the
+// cheapest way to cut the sequence into contiguous trips. No DOM, no I/O.
 //
-// Per-trip cargo capacity is inferred from geometry (cargo lengths + gaps), so
-// there is no separate unit-count constraint.
+// Every constraint is always on — there are no feature flags. The operator
+// supplies every field and a literal 0 is a valid value the math handles on its
+// own: a zero cost-param simply drops out of the objective (and, because the
+// objective is lexicographic, an all-zero cost turns "minimize cost" into
+// "minimize trips"), while a zero capacity is taken literally — you disable a
+// limit by making it large, not by zeroing it.
 
 export type Item = { w: number; l: number };
 
+// One trailer (carreta) of a rig — a bin in the 2-D packing. Heterogeneous: each
+// trailer carries its own physical weight capacity, length, and inter-cargo gap.
+export type Carreta = {
+	capacity: number; // physical weight capacity (kg)
+	length: number; // physical length capacity (m)
+	gap: number; // spacing between cargos on this trailer (m)
+};
+
 export type Vehicle = {
-	name: string;
+	name: string; // class name (unique identifier)
 	fleet: number; // vehicles available of this class
-	W: number; // weight capacity (whole vehicle — a regulatory total, weighed as one)
-	wmin: number; // minimum charged weight
-	L: number; // usable length per trailer
-	gap: number; // spacing between cargos
-	carretas?: number; // number of trailers the rig pulls; L is the length of each
-	// one and a cargo can't span two trailers (default 1)
-	freight?: number; // R$/kg charged on the billable weight (optional)
-	axles?: number; // number of axles (eixos), for the per-trip toll (optional)
-	toll?: number; // R$ per axle (pedágio/eixo); per-trip toll = axles × toll (optional)
+	pesoMax: number; // regulatory max total weight for the whole rig (kg)
+	minCharge: number; // minimum charge (R$); floors the freight, toll added on top
+	freight: number; // R$/kg on the carried weight
+	axles: number; // eixos
+	toll: number; // R$ per axle (pedágio/eixo); per-trip toll = axles × toll
+	carretas: Carreta[]; // ≥1 trailers — the bins of the 2-D packing
 };
 
 export type Objective = "cost" | "vehicles";
 
-export type Config = {
-	useWeight: boolean;
-	useLength: boolean;
-	useMinCharge: boolean;
-	useFleet: boolean;
-	useFreight: boolean;
-};
-
 export type Analysis =
 	| { valid: false; message: string }
-	| { valid: true; message: string; config: Config };
+	| { valid: true; message: string };
 
-// One trailer's load within a trip: which cargos ride it (global indices) and
-// the physical quantities that belong to a single compartment. These are
-// additive — the trailers' values sum to the trip's. Billing and cost are not
-// here: they're rig-level (min-charge floor, per-rig toll), so they live on Trip.
+// One trailer's load within a trip: which cargos ride it (global indices) and the
+// physical quantities of a single compartment. Additive — the trailers' values
+// sum to the trip's. Billing/cost are rig-level (min-charge floor, per-rig toll),
+// so they live on Trip, not here.
 export type Trailer = {
 	cargos: number[]; // global cargo indices on this trailer, ascending
 	w: number; // real weight on this trailer
@@ -53,12 +53,10 @@ export type Trip = {
 	vIdx: number; // vehicle class index
 	units: number; // cargos loaded (end - start + 1)
 	w: number; // real weight carried
-	l: number; // occupied length
-	c: number; // charged (billable) weight
-	r: number; // trip cost in R$ (billable weight × freight + axles × toll); = c when no freight
+	c: number; // billable weight (kg) — equals w (the charge floor is now in R$)
+	r: number; // trip cost in R$: max(w × freight, minCharge) + axles × toll
 	// One feasible per-trailer breakdown, filled only for materialized
-	// compositions. Always at least one trailer (a single-trailer rig, or when
-	// geometry is inactive, puts the whole block on one bed).
+	// compositions. Always at least one trailer.
 	beds?: Trailer[];
 };
 
@@ -73,38 +71,25 @@ export type SolveResult =
 	| {
 			status: "success";
 			message: string;
-			// Partitions that achieve the optimal objective value, capped at
-			// MAX_COMPOSITIONS. When ties are abundant the true count can be
-			// astronomically large, so this list is only a sample — see
-			// compositionCount for how many optima actually exist.
+			// Partitions achieving the optimal objective value, capped at
+			// MAX_COMPOSITIONS — a sample when ties are abundant. compositionCount
+			// reports how many optima actually exist.
 			compositions: Trip[][];
-			// Total number of optimal partitions, counted over the predecessor DAG
-			// without materializing them. May exceed compositions.length.
 			compositionCount: number;
 			objectiveValue: number;
 			statesExplored: number;
-			config: Config;
 	  };
 
 // Upper bound on how many optimal partitions we expand into `compositions`. The
-// count can be exponential (a polynomial DAG encodes exponentially many paths),
-// so we list a sample and report the true total via compositionCount.
+// count can be exponential, so we list a sample and report the true total.
 const MAX_COMPOSITIONS = 100;
 
-function hasNegative(values: number[]): boolean {
-	return values.some((value) => value < 0);
-}
+// Float tolerance for the packing comparisons (gaps accumulate rounding dust).
+const EPS = 1e-9;
 
-function hasAnyPositive(values: number[]): boolean {
-	return values.some((value) => value > 0);
-}
-
-function hasAllPositive(values: number[]): boolean {
-	return values.every((value) => value > 0);
-}
-
-// Validate the inputs and decide which constraints are actually active (a
-// column is only enforced when at least one positive value is present).
+// Validate the inputs. Every value must be non-negative (zero is allowed and the
+// math handles it), each class needs at least one trailer, and there must be at
+// least one cargo and one class. Feasibility itself is reported by solve, not here.
 export function analyzeProblem(items: Item[], vehicles: Vehicle[]): Analysis {
 	if (!items.length || !vehicles.length) {
 		return {
@@ -113,224 +98,163 @@ export function analyzeProblem(items: Item[], vehicles: Vehicle[]): Analysis {
 		};
 	}
 
-	const itemWeights = items.map((item) => item.w);
-	const itemLengths = items.map((item) => item.l);
-	const vehicleWeights = vehicles.map((vehicle) => vehicle.W);
-	const vehicleMinCharges = vehicles.map((vehicle) => vehicle.wmin);
-	const vehicleLengths = vehicles.map((vehicle) => vehicle.L);
-	const vehicleGaps = vehicles.map((vehicle) => vehicle.gap);
-	const vehicleCarretas = vehicles.map((vehicle) => vehicle.carretas ?? 0);
-	const vehicleFleet = vehicles.map((vehicle) => vehicle.fleet);
-	const vehicleFreight = vehicles.map((vehicle) => vehicle.freight ?? 0);
-	const vehicleAxles = vehicles.map((vehicle) => vehicle.axles ?? 0);
-	const vehicleToll = vehicles.map((vehicle) => vehicle.toll ?? 0);
+	if (vehicles.some((v) => v.carretas.length === 0)) {
+		return {
+			valid: false,
+			message: "Cada classe de veículo precisa de ao menos uma carreta.",
+		};
+	}
 
-	if (
-		hasNegative(itemWeights) ||
-		hasNegative(itemLengths) ||
-		hasNegative(vehicleWeights) ||
-		hasNegative(vehicleMinCharges) ||
-		hasNegative(vehicleLengths) ||
-		hasNegative(vehicleGaps) ||
-		hasNegative(vehicleCarretas) ||
-		hasNegative(vehicleFleet) ||
-		hasNegative(vehicleFreight) ||
-		hasNegative(vehicleAxles) ||
-		hasNegative(vehicleToll)
-	) {
+	const itemBad = items.some((i) => i.w < 0 || i.l < 0);
+	const vehicleBad = vehicles.some(
+		(v) =>
+			v.fleet < 0 ||
+			v.pesoMax < 0 ||
+			v.minCharge < 0 ||
+			v.freight < 0 ||
+			v.axles < 0 ||
+			v.toll < 0 ||
+			v.carretas.some((c) => c.capacity < 0 || c.length < 0 || c.gap < 0),
+	);
+	if (itemBad || vehicleBad) {
 		return {
 			valid: false,
 			message: "Use apenas valores maiores ou iguais a zero.",
 		};
 	}
 
-	const itemLengthAny = hasAnyPositive(itemLengths);
-	const itemWeightAll = hasAllPositive(itemWeights);
-	const itemLengthAll = hasAllPositive(itemLengths);
-	const vehicleWeightAny = hasAnyPositive(vehicleWeights);
-	const vehicleLengthAny = hasAnyPositive(vehicleLengths);
-
-	if (!itemWeightAll) {
-		return {
-			valid: false,
-			message: "Informe pesos não nulos para todas as cargas.",
-		};
-	}
-
-	if (itemLengthAny && !itemLengthAll) {
-		return {
-			valid: false,
-			message:
-				"Se informar um comprimento, informe comprimentos não nulos para todas as cargas.",
-		};
-	}
-
-	if (!vehicleWeightAny) {
-		return {
-			valid: false,
-			message: "Informe ao menos um Peso Máx. não nulo na frota.",
-		};
-	}
-
-	// Freight is all-or-nothing: a rate on one class but not another would silently
-	// price some trips in R$ and others at a meaningless rate of 1.
-	const freightAny = hasAnyPositive(vehicleFreight);
-	const freightAll = hasAllPositive(vehicleFreight);
-	if (freightAny && !freightAll) {
-		return {
-			valid: false,
-			message: "Se informar um frete, informe fretes não nulos para todas as classes.",
-		};
-	}
-
-	// Toll is in R$, so it only composes with a R$ objective — it needs a freight.
-	if (hasAnyPositive(vehicleToll) && !freightAny) {
-		return {
-			valid: false,
-			message: "Para considerar pedágio, informe o frete (R$/kg) das classes.",
-		};
-	}
-
-	return {
-		valid: true,
-		message: "pronto para calcular",
-		config: {
-			useWeight: true,
-			useLength: itemLengthAll && vehicleLengthAny,
-			useMinCharge: hasAnyPositive(vehicleMinCharges),
-			useFleet: hasAnyPositive(vehicleFleet),
-			useFreight: freightAny,
-		},
-	};
+	return { valid: true, message: "pronto para calcular" };
 }
 
-// Float tolerance for the multi-trailer packing test: folding the gap into each
-// cargo's length adds/removes a gap term, so compare with a small slack.
-const EPS = 1e-9;
+// Occupied length of m cargos sharing a trailer: Σℓ + (m−1)·gap.
+function occupiedLength(lengths: number[], gap: number): number {
+	if (lengths.length === 0) return 0;
+	return lengths.reduce((sum, l) => sum + l, 0) + (lengths.length - 1) * gap;
+}
 
-// Free-placement packing for a multi-trailer rig: distribute these cargos across
-// `beds` trailers — any cargo on any trailer, no order imposed within the rig —
-// so that every trailer's occupied length stays within `bedLength`. A trailer
-// holding m cargos occupies Σℓ + (m−1)·gap. Returns one feasible assignment as
-// arrays of indices into `lengths` (one array per trailer), or null if none fits.
-//
-// Folding the inter-cargo gap into each cargo (size ℓ+gap, capacity bedLength+gap)
-// turns this into classic bin-packing into a fixed number of bins: a trailer of m
-// cargos is feasible iff Σ(ℓ+gap) ≤ bedLength+gap. That's weakly NP-hard in
-// general, but a per-trip block holds only a handful of cargos, so an exhaustive
-// best-fit search with symmetry pruning settles it instantly. The witnessing
-// assignment is arbitrary among possibly many — it proves feasibility and shows
-// the operator one valid way to load the rig.
+// Free-placement packing for a rig: distribute these cargos across its trailers —
+// any cargo on any trailer, no order within the rig — so every trailer b stays
+// within both its weight capacity and its length:
+//   Σweight ≤ carretas[b].capacity   and   Σℓ + (m−1)·gap_b ≤ carretas[b].length.
+// Returns one feasible assignment (indices per trailer) or null. This is vector
+// (2-D) bin-packing into a fixed set of *heterogeneous* bins — NP-hard in general,
+// but a per-trip block is a handful of cargos, so exhaustive backtracking with
+// symmetry pruning settles it instantly. The witness is arbitrary among many.
 function fitTrailers(
+	weights: number[],
 	lengths: number[],
-	gap: number,
-	beds: number,
-	bedLength: number,
+	carretas: Carreta[],
 ): number[][] | null {
-	const capacity = bedLength + gap;
-	const sizes = lengths.map((l) => l + gap);
+	const beds = carretas.length;
 
-	// A single cargo too long for one trailer kills it outright; so does a block
-	// whose total can't fit the trailers' combined capacity.
-	if (sizes.some((s) => s > capacity + EPS)) return null;
-	if (sizes.reduce((sum, s) => sum + s, 0) > beds * capacity + EPS) return null;
+	// A cargo that fits no single trailer (by weight or length) kills the block.
+	for (let i = 0; i < weights.length; i++) {
+		const fitsSome = carretas.some(
+			(c) => weights[i] <= c.capacity + EPS && lengths[i] <= c.length + EPS,
+		);
+		if (!fitsSome) return null;
+	}
 
-	// Place the largest cargos first (stronger pruning) and, at each step, skip
-	// trailers whose current load we've already tried at this depth — equal-load
-	// trailers are interchangeable, which also keeps us from opening more than one
-	// empty trailer.
-	const order = sizes.map((_, i) => i).sort((a, b) => sizes[b] - sizes[a]);
-	const loads = new Array<number>(beds).fill(0);
+	// Heaviest first for stronger pruning.
+	const order = weights.map((_, i) => i).sort((a, b) => weights[b] - weights[a]);
+	const wLoads = new Array<number>(beds).fill(0);
+	const lLoads = new Array<number>(beds).fill(0); // raw occupied length so far
+	const counts = new Array<number>(beds).fill(0);
 	const assignment: number[][] = Array.from({ length: beds }, () => []);
+
 	const place = (k: number): boolean => {
 		if (k === order.length) return true;
 		const idx = order[k];
-		const size = sizes[idx];
-		const tried = new Set<number>();
+		const w = weights[idx];
+		const l = lengths[idx];
+		const tried = new Set<string>();
 		for (let b = 0; b < beds; b++) {
-			if (tried.has(loads[b])) continue;
-			tried.add(loads[b]);
-			if (loads[b] + size <= capacity + EPS) {
-				loads[b] += size;
+			const c = carretas[b];
+			// Skip a trailer interchangeable with one already tried at this depth —
+			// same spec and same current load (also avoids opening duplicate empties).
+			const sig = `${c.capacity}|${c.length}|${c.gap}|${wLoads[b]}|${lLoads[b]}`;
+			if (tried.has(sig)) continue;
+			tried.add(sig);
+			// First cargo on a trailer adds no gap; each later one adds this gap.
+			const lInc = counts[b] === 0 ? l : l + c.gap;
+			if (
+				wLoads[b] + w <= c.capacity + EPS &&
+				lLoads[b] + lInc <= c.length + EPS
+			) {
+				wLoads[b] += w;
+				lLoads[b] += lInc;
+				counts[b] += 1;
 				assignment[b].push(idx);
 				if (place(k + 1)) return true;
 				assignment[b].pop();
-				loads[b] -= size;
+				counts[b] -= 1;
+				lLoads[b] -= lInc;
+				wLoads[b] -= w;
 			}
 		}
 		return false;
 	};
+
 	return place(0) ? assignment : null;
 }
 
-// Does the cargo block items[start..end] fit the vehicle? A single-trailer rig
-// (the default) just lays everything end-to-end within L; a multi-trailer rig
-// packs the cargos across its `beds` trailers, each L long, via the test above.
-function lengthFits(
+// Does the cargo block items[start..end] fit the vehicle? The whole rig's weight
+// must be within the regulatory pesoMax, and the cargos must pack across the
+// trailers under their per-trailer weight and length limits.
+function rigFits(
 	items: Item[],
 	start: number,
 	end: number,
-	occupiedLength: number,
+	sumW: number,
 	vehicle: Vehicle,
 ): boolean {
-	const beds = Math.max(1, Math.trunc(vehicle.carretas ?? 1));
-	if (beds <= 1) return occupiedLength <= vehicle.L;
-
+	if (sumW > vehicle.pesoMax + EPS) return false;
+	const weights: number[] = [];
 	const lengths: number[] = [];
-	for (let i = start; i <= end; i++) lengths.push(items[i].l);
-	return fitTrailers(lengths, vehicle.gap, beds, vehicle.L) !== null;
+	for (let i = start; i <= end; i++) {
+		weights.push(items[i].w);
+		lengths.push(items[i].l);
+	}
+	return fitTrailers(weights, lengths, vehicle.carretas) !== null;
 }
 
-// Build a Trailer (weight + occupied length) from a set of global cargo indices.
-function makeTrailer(
-	items: Item[],
-	cargos: number[],
-	gap: number,
-	useLength: boolean,
-): Trailer {
+function makeTrailer(items: Item[], cargos: number[], gap: number): Trailer {
 	const w = cargos.reduce((sum, i) => sum + items[i].w, 0);
-	const l = useLength
-		? cargos.reduce((sum, i) => sum + items[i].l, 0) +
-			Math.max(0, cargos.length - 1) * gap
-		: 0;
+	const l = occupiedLength(
+		cargos.map((i) => items[i].l),
+		gap,
+	);
 	return { cargos, w, l };
 }
 
-// One feasible per-trailer breakdown for a chosen trip: each trailer used, its
-// cargos sorted ascending, the trailers ordered by their first cargo. A single-
-// trailer rig (or an instance without geometry) puts the whole block on one bed.
-// Display-only: the optimizer needs feasibility, this shows how to load.
+// One feasible per-trailer breakdown for a chosen trip: each used trailer with its
+// cargos ascending, trailers ordered by their first cargo. Display-only — solve
+// needs feasibility; this shows the operator one valid way to load the rig.
 function assignTrailers(
 	items: Item[],
 	start: number,
 	end: number,
 	vehicle: Vehicle,
-	useLength: boolean,
 ): Trailer[] {
-	const indices = Array.from({ length: end - start + 1 }, (_, i) => start + i);
-	const beds = Math.max(1, Math.trunc(vehicle.carretas ?? 1));
-	if (!useLength || beds <= 1) {
-		return [makeTrailer(items, indices, vehicle.gap, useLength)];
-	}
-
 	const local = fitTrailers(
-		indices.map((i) => items[i].l),
-		vehicle.gap,
-		beds,
-		vehicle.L,
+		Array.from({ length: end - start + 1 }, (_, k) => items[start + k].w),
+		Array.from({ length: end - start + 1 }, (_, k) => items[start + k].l),
+		vehicle.carretas,
 	);
-	// A trip only exists because it already passed lengthFits, so `local` is
-	// non-null here; fall back to a single group defensively.
-	if (!local) return [makeTrailer(items, indices, vehicle.gap, useLength)];
-
+	// A trip exists only because it passed rigFits, so `local` is non-null here;
+	// fall back to a single group defensively.
+	if (!local) {
+		const all = Array.from({ length: end - start + 1 }, (_, k) => start + k);
+		return [makeTrailer(items, all, vehicle.carretas[0].gap)];
+	}
 	return local
-		.filter((bed) => bed.length > 0)
-		.map((bed) =>
+		.map((bed, b) => ({ bed, gap: vehicle.carretas[b].gap }))
+		.filter(({ bed }) => bed.length > 0)
+		.map(({ bed, gap }) =>
 			makeTrailer(
 				items,
 				bed.map((li) => start + li).sort((a, b) => a - b),
-				vehicle.gap,
-				useLength,
+				gap,
 			),
 		)
 		.sort((a, b) => a.cargos[0] - b.cargos[0]);
@@ -340,70 +264,46 @@ type TripCandidate = {
 	end: number;
 	vehicleIdx: number;
 	totalW: number;
-	totalL: number;
 	totalUnits: number;
-	charged: number; // billable weight (kg)
-	reais: number; // billable weight × freight, rounded to centavos (= charged when no freight)
+	reais: number; // max(w × freight, minCharge) + axles × toll, rounded to centavos
 };
 
 // For every start position, enumerate the feasible trips: contiguous runs of
-// cargos starting there that fit some vehicle class under the active
-// constraints.
-function buildTrips(
-	items: Item[],
-	vehicles: Vehicle[],
-	config: Config,
-): TripCandidate[][] {
+// cargos from there that fit some vehicle class.
+function buildTrips(items: Item[], vehicles: Vehicle[]): TripCandidate[][] {
 	const tripsFrom: TripCandidate[][] = Array.from(
 		{ length: items.length },
 		() => [],
 	);
+	const maxPeso = Math.max(...vehicles.map((v) => v.pesoMax));
 
 	for (let start = 0; start < items.length; start++) {
 		let sumW = 0;
-		let sumL = 0;
-
 		for (let end = start; end < items.length; end++) {
 			sumW += items[end].w;
-			sumL += items[end].l;
+			// Weight only grows; once past every class's regulatory cap, no longer
+			// block from this start can fit, so stop extending.
+			if (sumW > maxPeso + EPS) break;
 			const nItems = end - start + 1;
 
 			vehicles.forEach((vehicle, vehicleIdx) => {
-				const occupiedLength = config.useLength
-					? sumL + (nItems > 1 ? (nItems - 1) * vehicle.gap : 0)
-					: 0;
-				const weightOk = !config.useWeight || sumW <= vehicle.W;
-				const lengthOk =
-					!config.useLength ||
-					lengthFits(items, start, end, occupiedLength, vehicle);
-				const charged = config.useMinCharge
-					? Math.max(config.useWeight ? sumW : 0, vehicle.wmin)
-					: config.useWeight
-						? sumW
-						: 0;
-				// Money cost: billable weight × R$/kg plus the per-trip toll
-				// (axles × R$/axle), rounded to centavos so ties are exact on cents
-				// rather than fragile on floating-point dust. Without a freight rate the
-				// cost stays the raw billable weight (rate 1) and tolls don't apply.
-				const reais = config.useFreight
-					? Math.round(
-							(charged * (vehicle.freight ?? 0) +
-								(vehicle.axles ?? 0) * (vehicle.toll ?? 0)) *
-								100,
-						) / 100
-					: charged;
-
-				if (weightOk && lengthOk) {
-					tripsFrom[start].push({
-						end,
-						vehicleIdx,
-						totalW: config.useWeight ? sumW : 0,
-						totalL: occupiedLength,
-						totalUnits: nItems,
-						charged,
-						reais,
-					});
-				}
+				if (!rigFits(items, start, end, sumW, vehicle)) return;
+				// Money cost: freight on the carried weight, floored by the minimum
+				// charge, with the per-trip toll (axles × R$/axle) added on top. Rounded
+				// to centavos so ties are exact on cents, not fragile on float dust.
+				const reais =
+					Math.round(
+						(Math.max(sumW * vehicle.freight, vehicle.minCharge) +
+							vehicle.axles * vehicle.toll) *
+							100,
+					) / 100;
+				tripsFrom[start].push({
+					end,
+					vehicleIdx,
+					totalW: sumW,
+					totalUnits: nItems,
+					reais,
+				});
 			});
 		}
 	}
@@ -414,12 +314,10 @@ function buildTrips(
 // An incoming edge into a DP state: the trip taken plus the state it came from.
 type Edge = Trip & { prev: string };
 
-// The DP cost is lexicographic: the chosen objective is primary, the other
-// metric breaks ties. For "cost" that's (R$ charged, trip count); for "vehicles"
-// it's (trip count, R$ charged). The R$ is billable weight × freight, or just
-// billable weight when no freight rate is given. Both components are additive
-// over trips, so they compose along a path like an ordinary shortest-path cost —
-// no remodeling, just a richer comparison. The tiebreaker never overrides the
+// The DP cost is lexicographic: the chosen objective is primary, the other metric
+// breaks ties. For "cost" that's (R$, trip count); for "vehicles" it's (trip
+// count, R$). Both components are additive over trips, so they compose along a
+// path like an ordinary shortest-path cost. The tiebreaker never overrides the
 // primary; it only orders solutions that already tie on it.
 type Cost = [primary: number, secondary: number];
 
@@ -430,9 +328,8 @@ const lexEqual = (a: Cost, b: Cost): boolean =>
 	a[0] === b[0] && a[1] === b[1];
 
 // Shortest-path DP over states `position | fleet-usage`. Each edge consumes a
-// feasible trip; the edge cost is the lexicographic pair (see Cost above). Every
-// predecessor edge achieving a state's best cost is kept, so all optimal
-// partitions can be reconstructed — not just one.
+// feasible trip; every predecessor edge achieving a state's best cost is kept, so
+// all optimal partitions can be reconstructed — not just one.
 export function solve(
 	items: Item[],
 	vehicles: Vehicle[],
@@ -449,8 +346,7 @@ export function solve(
 		};
 	}
 
-	const { config } = analysis;
-	const tripsFrom = buildTrips(items, vehicles, config);
+	const tripsFrom = buildTrips(items, vehicles);
 	const best = new Map<string, Cost>();
 	const parents = new Map<string, Edge[]>();
 	const statesByPos: string[][] = Array.from(
@@ -470,17 +366,10 @@ export function solve(
 
 			for (const trip of tripsFrom[position]) {
 				const vehicleIndex = trip.vehicleIdx;
-				if (
-					config.useFleet &&
-					usage[vehicleIndex] >= vehicles[vehicleIndex].fleet
-				) {
-					continue;
-				}
+				if (usage[vehicleIndex] >= vehicles[vehicleIndex].fleet) continue;
 
-				const nextUsage = config.useFleet ? [...usage] : usage;
-				if (config.useFleet) {
-					nextUsage[vehicleIndex] += 1;
-				}
+				const nextUsage = [...usage];
+				nextUsage[vehicleIndex] += 1;
 
 				const nextKey = `${trip.end + 1}|${nextUsage.join(",")}`;
 				const [primInc, secInc]: Cost =
@@ -498,8 +387,7 @@ export function solve(
 					vIdx: vehicleIndex,
 					units: trip.totalUnits,
 					w: trip.totalW,
-					l: trip.totalL,
-					c: trip.charged,
+					c: trip.totalW,
 					r: trip.reais,
 				};
 
@@ -541,11 +429,10 @@ export function solve(
 		return value !== undefined && lexEqual(value, optimalCost);
 	});
 
-	// Count the optimal partitions without materializing them: the number of
-	// paths from a state back to the start is the sum over its predecessor edges
-	// of the paths into each predecessor (the start state counts as one path).
-	// The graph is acyclic (position strictly decreases along `prev`), so a
-	// memoized recursion is polynomial — even when the count itself is huge.
+	// Count the optimal partitions without materializing them: paths from a state
+	// back to the start sum over its predecessor edges. The graph is acyclic
+	// (position strictly decreases along `prev`), so memoized recursion is
+	// polynomial even when the count itself is huge.
 	const pathCache = new Map<string, number>();
 	const countPaths = (key: string): number => {
 		const cached = pathCache.get(key);
@@ -566,8 +453,7 @@ export function solve(
 	);
 
 	// Materialize only a sample: enumerate paths from the optimal end-states back
-	// to the start, stopping at MAX_COMPOSITIONS. The start state is the only one
-	// with no incoming edges (the recursion base).
+	// to the start, stopping at MAX_COMPOSITIONS.
 	const compositions: Trip[][] = [];
 	const walk = (key: string, acc: Trip[]): void => {
 		if (compositions.length >= MAX_COMPOSITIONS) return;
@@ -578,15 +464,8 @@ export function solve(
 		}
 		for (const { prev, ...trip } of edges) {
 			if (compositions.length >= MAX_COMPOSITIONS) return;
-			// Attach the per-trailer breakdown for display. Always at least one
-			// trailer; only splits when geometry is active and the rig has several.
-			trip.beds = assignTrailers(
-				items,
-				trip.start,
-				trip.end,
-				vehicles[trip.vIdx],
-				config.useLength,
-			);
+			// Attach the per-trailer breakdown for display.
+			trip.beds = assignTrailers(items, trip.start, trip.end, vehicles[trip.vIdx]);
 			acc.push(trip);
 			walk(prev, acc);
 			acc.pop();
@@ -605,6 +484,5 @@ export function solve(
 		compositionCount,
 		objectiveValue: optimalCost[0],
 		statesExplored: best.size,
-		config,
 	};
 }

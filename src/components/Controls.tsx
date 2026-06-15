@@ -6,12 +6,10 @@ import type { Objective } from "../helpers/optimizer";
 export function Controls({
 	objective,
 	setObjective,
-	onSolve,
 	onClear,
 }: {
 	objective: Objective;
 	setObjective: (objective: Objective) => void;
-	onSolve: () => void;
 	onClear: () => void;
 }) {
 	return (
@@ -52,7 +50,7 @@ export function Controls({
 					/>
 					Minimizar veículos
 				</label>
-				<button id="solve-button" type="button" onClick={onSolve}>
+				<button id="solve-button" type="submit">
 					Calcular
 				</button>
 				<button id="clear-button" type="button" onClick={onClear}>

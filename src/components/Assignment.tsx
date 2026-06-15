@@ -16,16 +16,12 @@ export function Assignment({
 	total,
 	vehicles,
 	colors,
-	useFreight,
-	useLength,
 }: {
 	composition: Trip[];
 	index: number; // 0-based position in the sample
 	total: number; // compositionCount (how many optima exist)
 	vehicles: Vehicle[];
 	colors: string[];
-	useFreight: boolean;
-	useLength: boolean;
 }) {
 	let totalUnits = 0;
 	let totalW = 0;
@@ -55,20 +51,22 @@ export function Assignment({
 					name={vehicles[trip.vIdx].name}
 					color={colors[trip.vIdx]}
 					trip={trip}
-					useFreight={useFreight}
-					useLength={useLength}
 				/>
 			))}
+			{/* Mirror AssignedVehicle's nesting (identity · flex:5 carreta group ·
+			    costs) so the Total's columns line up with the rows above. */}
 			<div className="bg" style={{ minHeight: "var(--row-height, 0px)" }}>
 				<TableCell style={BOLD}>Total</TableCell>
 				<TableCell> </TableCell>
-				<TableCell> </TableCell>
-				<TableCell style={BOLD}>{totalUnits}</TableCell>
-				<TableCell> </TableCell>
-				<TableCell style={BOLD}>{fmt(totalW)}</TableCell>
-				<TableCell style={BOLD}>{useLength ? fmtLen(totalL) : "—"}</TableCell>
+				<div className="bg" style={{ flex: 5, minWidth: 0 }}>
+					<TableCell> </TableCell>
+					<TableCell style={BOLD}>{totalUnits}</TableCell>
+					<TableCell> </TableCell>
+					<TableCell style={BOLD}>{fmt(totalW)}</TableCell>
+					<TableCell style={BOLD}>{fmtLen(totalL)}</TableCell>
+				</div>
 				<TableCell style={BOLD}>{fmt(totalC)}</TableCell>
-				<TableCell style={BOLD}>{useFreight ? fmtBRL(totalR) : "—"}</TableCell>
+				<TableCell style={BOLD}>{fmtBRL(totalR)}</TableCell>
 			</div>
 		</div>
 	);

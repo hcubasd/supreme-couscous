@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
 	analyzeProblem,
-	type Config,
+	type Carreta,
 	type Item,
 	solve,
 	type Trip,
@@ -12,29 +12,40 @@ import {
 
 const item = (w: number, l = 0): Item => ({ w, l });
 
+// A trailer that constrains nothing by default; override what a test cares about.
+const carreta = (over: Partial<Carreta> = {}): Carreta => ({
+	capacity: Number.MAX_SAFE_INTEGER,
+	length: Number.MAX_SAFE_INTEGER,
+	gap: 0,
+	...over,
+});
+
 let vehicleSeq = 0;
-// A vehicle that constrains nothing by default (huge capacities, plenty of
-// fleet); override only the fields a test cares about.
+// A vehicle that constrains nothing by default (huge caps, plenty of fleet, one
+// unconstrained trailer) with freight 1 so a trip's cost equals its weight unless
+// a test overrides the money params. Override only the fields a test cares about.
 const veh = (over: Partial<Vehicle> = {}): Vehicle => ({
 	name: `V${vehicleSeq++}`,
 	fleet: 100,
-	W: Number.MAX_SAFE_INTEGER,
-	wmin: 0,
-	L: Number.MAX_SAFE_INTEGER,
-	gap: 0,
+	pesoMax: Number.MAX_SAFE_INTEGER,
+	minCharge: 0,
+	freight: 1,
+	axles: 0,
+	toll: 0,
+	carretas: [carreta()],
 	...over,
 });
 
 // --- composition validator ------------------------------------------------
 
-// Assert a single composition is a legal solution to the instance: a contiguous
-// tiling of 0..n-1 that respects every active constraint, and whose objective
-// accounting matches the reported optimum.
+// Assert a composition is a legal solution: a contiguous tiling of 0..n-1 that
+// respects the regulatory rig weight and the fleet, with cost accounting matching
+// the reported optimum. (Per-trailer packing feasibility is the solver's job; we
+// sanity-check that the breakdown's parts sum to the trip.)
 function expectValidComposition(
 	comp: Trip[],
 	items: Item[],
 	vehicles: Vehicle[],
-	config: Config,
 	objective: "cost" | "vehicles",
 	objectiveValue: number,
 ) {
@@ -46,31 +57,27 @@ function expectValidComposition(
 	const usageByClass = new Map<number, number>();
 
 	comp.forEach((trip, i) => {
-		// contiguity + unit count
 		expect(trip.units).toBe(trip.end - trip.start + 1);
 		if (i > 0) expect(trip.start).toBe(comp[i - 1].end + 1);
 
 		const block = items.slice(trip.start, trip.end + 1);
 		const v = vehicles[trip.vIdx];
+		const w = block.reduce((s, x) => s + x.w, 0);
 
-		if (config.useWeight) {
-			const w = block.reduce((s, x) => s + x.w, 0);
-			expect(w).toBeLessThanOrEqual(v.W + 1e-9);
-		}
-		if (config.useLength) {
-			const len =
-				block.reduce((s, x) => s + x.l, 0) + (trip.units - 1) * v.gap;
-			expect(len).toBeLessThanOrEqual(v.L + 1e-9);
-		}
+		// regulatory rig cap
+		expect(w).toBeLessThanOrEqual(v.pesoMax + 1e-9);
+		// the breakdown's trailers partition the block and sum to its weight
+		const beds = trip.beds ?? [];
+		const cargoCount = beds.reduce((s, b) => s + b.cargos.length, 0);
+		expect(cargoCount).toBe(trip.units);
+		expect(beds.reduce((s, b) => s + b.w, 0)).toBeCloseTo(w, 6);
 
 		usageByClass.set(trip.vIdx, (usageByClass.get(trip.vIdx) ?? 0) + 1);
-		costSum += trip.c;
+		costSum += trip.r;
 	});
 
-	if (config.useFleet) {
-		for (const [vIdx, used] of usageByClass) {
-			expect(used).toBeLessThanOrEqual(vehicles[vIdx].fleet);
-		}
+	for (const [vIdx, used] of usageByClass) {
+		expect(used).toBeLessThanOrEqual(vehicles[vIdx].fleet);
 	}
 
 	if (objective === "vehicles") {
@@ -80,21 +87,16 @@ function expectValidComposition(
 	}
 }
 
-// Run solve and assert success, returning the narrowed result.
-function solveOk(items: Item[], vehicles: Vehicle[], objective: "cost" | "vehicles") {
+function solveOk(
+	items: Item[],
+	vehicles: Vehicle[],
+	objective: "cost" | "vehicles",
+) {
 	const result = solve(items, vehicles, objective);
 	expect(result.status).toBe("success");
 	if (result.status !== "success") throw new Error("unreachable");
-	// every composition must be valid and share the optimal value
 	for (const comp of result.compositions) {
-		expectValidComposition(
-			comp,
-			items,
-			vehicles,
-			result.config,
-			objective,
-			result.objectiveValue,
-		);
+		expectValidComposition(comp, items, vehicles, objective, result.objectiveValue);
 	}
 	return result;
 }
@@ -107,58 +109,34 @@ describe("analyzeProblem", () => {
 		expect(analyzeProblem([item(10)], []).valid).toBe(false);
 	});
 
-	it("rejects negative values", () => {
+	it("rejects negative values (cargo, class fields, trailer fields)", () => {
 		expect(analyzeProblem([item(-5)], [veh()]).valid).toBe(false);
-		expect(analyzeProblem([item(10)], [veh({ W: -1 })]).valid).toBe(false);
+		expect(analyzeProblem([item(10)], [veh({ pesoMax: -1 })]).valid).toBe(false);
+		expect(
+			analyzeProblem([item(10)], [veh({ carretas: [carreta({ length: -1 })] })])
+				.valid,
+		).toBe(false);
 	});
 
-	it("requires every cargo to have a positive weight", () => {
-		expect(analyzeProblem([item(10), item(0)], [veh()]).valid).toBe(false);
+	it("rejects a class with no trailers", () => {
+		expect(analyzeProblem([item(10)], [veh({ carretas: [] })]).valid).toBe(false);
 	});
 
-	it("requires all-or-nothing lengths across cargo", () => {
-		// one length given, another missing → invalid
-		const mixed = analyzeProblem(
-			[item(10, 2), item(10, 0)],
-			[veh({ L: 5 })],
-		);
-		expect(mixed.valid).toBe(false);
-	});
-
-	it("requires at least one vehicle with positive weight capacity", () => {
-		expect(analyzeProblem([item(10)], [veh({ W: 0 })]).valid).toBe(false);
-	});
-
-	it("activates constraints based on the data present", () => {
+	it("accepts zeros — they are valid literal values", () => {
 		const analysis = analyzeProblem(
-			[item(10, 2), item(12, 3)],
-			[veh({ W: 100, wmin: 50, L: 6, gap: 0.2, fleet: 3 })],
+			[item(10, 0)],
+			[
+				veh({
+					pesoMax: 100,
+					minCharge: 0,
+					freight: 0,
+					toll: 0,
+					fleet: 0,
+					carretas: [carreta({ capacity: 100, length: 0, gap: 0 })],
+				}),
+			],
 		);
 		expect(analysis.valid).toBe(true);
-		if (!analysis.valid) throw new Error("unreachable");
-		expect(analysis.config).toEqual({
-			useWeight: true,
-			useLength: true,
-			useMinCharge: true,
-			useFleet: true,
-			useFreight: false,
-		});
-	});
-
-	it("disables length, min-charge and fleet when their data is absent", () => {
-		const analysis = analyzeProblem(
-			[item(10), item(12)],
-			[veh({ W: 100, wmin: 0, L: 0, gap: 0, fleet: 0 })],
-		);
-		expect(analysis.valid).toBe(true);
-		if (!analysis.valid) throw new Error("unreachable");
-		expect(analysis.config).toEqual({
-			useWeight: true,
-			useLength: false,
-			useMinCharge: false,
-			useFleet: false,
-			useFreight: false,
-		});
 	});
 });
 
@@ -172,25 +150,36 @@ describe("solve – basics", () => {
 	});
 
 	it("solves a single cargo with a single vehicle", () => {
-		const items = [item(100)];
-		const vehicles = [veh({ W: 200 })];
-		const result = solveOk(items, vehicles, "cost");
+		const result = solveOk([item(100)], [veh({ pesoMax: 200 })], "cost");
 		expect(result.compositions).toHaveLength(1);
 		expect(result.objectiveValue).toBe(100);
 		const [trip] = result.compositions[0];
-		expect(trip).toMatchObject({ start: 0, end: 0, vIdx: 0, units: 1, c: 100 });
+		expect(trip).toMatchObject({ start: 0, end: 0, vIdx: 0, units: 1, r: 100 });
 	});
 
-	it("applies the minimum charge floor", () => {
-		const result = solveOk([item(100)], [veh({ W: 200, wmin: 150 })], "cost");
+	it("applies the minimum charge floor (in R$, on the cost)", () => {
+		// weight 100 × freight 1 = 100, floored to the R$150 minimum charge
+		const result = solveOk([item(100)], [veh({ pesoMax: 200, minCharge: 150 })], "cost");
 		expect(result.objectiveValue).toBe(150);
-		expect(result.compositions[0][0].c).toBe(150);
+		expect(result.compositions[0][0].r).toBe(150);
+		// billable weight is still the real weight — the floor is on R$, not kg
+		expect(result.compositions[0][0].c).toBe(100);
 	});
 
-	it("splits when a block exceeds weight capacity", () => {
+	it("adds the per-trip toll on top of the (floored) freight", () => {
+		// max(100×1, 0) + 3×10 = 130
+		const result = solveOk(
+			[item(100)],
+			[veh({ pesoMax: 200, axles: 3, toll: 10 })],
+			"cost",
+		);
+		expect(result.objectiveValue).toBe(130);
+	});
+
+	it("splits when a block exceeds the regulatory rig weight", () => {
 		const result = solveOk(
 			[item(100), item(100)],
-			[veh({ W: 150, fleet: 5 })],
+			[veh({ pesoMax: 150, fleet: 5 })],
 			"cost",
 		);
 		expect(result.compositions).toHaveLength(1);
@@ -199,56 +188,142 @@ describe("solve – basics", () => {
 	});
 });
 
-// --- solve: edge cases ----------------------------------------------------
+// --- solve: trailers (2-D heterogeneous packing) --------------------------
 
-describe("solve – edge cases", () => {
+describe("solve – trailers", () => {
+	it("splits a block across two trailers by per-trailer weight", () => {
+		// two 8t trailers; 3×6t cannot share two bins (one bin would need 12 > 8)
+		const tight = solve(
+			[item(6), item(6), item(6)],
+			[veh({ pesoMax: 99, fleet: 1, carretas: [carreta({ capacity: 8 }), carreta({ capacity: 8 })] })],
+			"vehicles",
+		);
+		expect(tight.status).toBe("infeasible");
+
+		// {6,4} + {6} fits two 10t trailers
+		const ok = solveOk(
+			[item(6), item(4), item(6)],
+			[veh({ pesoMax: 99, fleet: 1, carretas: [carreta({ capacity: 10 }), carreta({ capacity: 10 })] })],
+			"vehicles",
+		);
+		const beds = ok.compositions[0][0].beds ?? [];
+		expect(beds).toHaveLength(2);
+		for (const b of beds) expect(b.w).toBeLessThanOrEqual(10);
+	});
+
+	it("handles heterogeneous trailers (different length capacities)", () => {
+		// one short trailer (2m) + one long (10m); a 3m cargo can only ride the long
+		const result = solveOk(
+			[item(1, 3), item(1, 1)],
+			[
+				veh({
+					pesoMax: 99,
+					fleet: 1,
+					carretas: [carreta({ length: 2 }), carreta({ length: 10 })],
+				}),
+			],
+			"vehicles",
+		);
+		expect(result.compositions[0]).toHaveLength(1); // both ride one rig
+	});
+
+	it("counts inter-cargo spacing toward a trailer's length", () => {
+		const items = [item(10, 2), item(10, 2)];
+		const withGap = solveOk(
+			items,
+			[veh({ fleet: 5, carretas: [carreta({ length: 4.2, gap: 0.3 })] })],
+			"cost",
+		);
+		expect(withGap.compositions[0]).toHaveLength(2); // 4.0 + 0.3 gap > 4.2 → split
+
+		const noGap = solveOk(
+			items,
+			[veh({ fleet: 5, carretas: [carreta({ length: 4.2, gap: 0 })] })],
+			"cost",
+		);
+		expect(noGap.compositions.some((comp) => comp.length === 1)).toBe(true);
+	});
+});
+
+// --- solve: edge cases (literal-zero handling) ----------------------------
+
+describe("solve – literal edge cases", () => {
 	it("is infeasible when a cargo fits no vehicle", () => {
-		const result = solve([item(1000)], [veh({ W: 100 })], "cost");
+		const result = solve([item(1000)], [veh({ pesoMax: 100 })], "cost");
 		expect(result.status).toBe("infeasible");
-		expect(result.compositions).toBeNull();
 		expect(result.objectiveValue).toBeNull();
 	});
 
 	it("is infeasible when the fleet is too small to cover the sequence", () => {
-		// three singletons required (any pair is 100 > 60) but only 2 vehicles
 		const result = solve(
 			[item(50), item(50), item(50)],
-			[veh({ W: 60, fleet: 2 })],
+			[veh({ pesoMax: 60, fleet: 2 })],
 			"cost",
 		);
 		expect(result.status).toBe("infeasible");
 	});
 
-	it("prefers a single trip when the minimum charge penalizes splitting", () => {
-		// pairing: max(100,80)=100; splitting: 80+80=160
+	it("treats fleet 0 literally — that class is simply unavailable", () => {
+		const result = solve([item(10)], [veh({ fleet: 0 })], "cost");
+		expect(result.status).toBe("infeasible");
+	});
+
+	it("treats pesoMax 0 literally — any positive cargo is infeasible", () => {
+		const result = solve([item(10)], [veh({ pesoMax: 0 })], "cost");
+		expect(result.status).toBe("infeasible");
+	});
+
+	it("allows zero-length cargo (only weight binds)", () => {
+		// length is irrelevant (0 length, 0 gap); the weight cap forces a split
 		const result = solveOk(
-			[item(50), item(50)],
-			[veh({ W: 100, wmin: 80, fleet: 5 })],
+			[item(100, 0), item(100, 0)],
+			[veh({ pesoMax: 150, fleet: 5, carretas: [carreta({ length: 0, gap: 0 })] })],
 			"cost",
 		);
-		expect(result.compositions).toHaveLength(1);
-		expect(result.compositions[0]).toHaveLength(1);
-		expect(result.objectiveValue).toBe(100);
+		expect(result.compositions[0]).toHaveLength(2);
 	});
 
-	it("counts inter-unit spacing toward the length limit", () => {
-		// two 2m units in a 4.2m vehicle: 4.0 fits, but +0.3 gap → 4.3 does not
-		const items = [item(10, 2), item(10, 2)];
-		const withGap = solveOk(items, [veh({ L: 4.2, gap: 0.3, fleet: 5 })], "cost");
-		expect(withGap.compositions[0]).toHaveLength(2); // forced to split
-
-		const noGap = solveOk(items, [veh({ L: 4.2, gap: 0, fleet: 5 })], "cost");
-		// without the gap the pair fits, so a single trip is among the optima
-		expect(
-			noGap.compositions.some((comp) => comp.length === 1),
-		).toBe(true);
+	it("allows zero-weight cargo (only length binds)", () => {
+		// weightless cargos; a 1m trailer holds at most 1 (next would be 1+1 = 2m)
+		const result = solveOk(
+			[item(0, 1), item(0, 1)],
+			[veh({ fleet: 5, carretas: [carreta({ length: 1, gap: 0 })] })],
+			"vehicles",
+		);
+		expect(result.objectiveValue).toBe(2);
 	});
 
-	it("treats fleet=0 across all classes as unconstrained, not zero capacity", () => {
-		// useFleet only activates when some fleet value is positive
-		const result = solveOk([item(50), item(50)], [veh({ W: 60, fleet: 0 })], "cost");
-		expect(result.config.useFleet).toBe(false);
-		expect(result.status).toBe("success");
+	it("lets gaps bind even at zero cargo length", () => {
+		// zero-length cargos but a 1m gap: a 1m trailer fits (m−1)·1 ≤ 1 → 2 cargos max
+		const fits2 = solveOk(
+			[item(1, 0), item(1, 0)],
+			[veh({ pesoMax: 99, carretas: [carreta({ length: 1, gap: 1 })] })],
+			"vehicles",
+		);
+		expect(fits2.compositions[0]).toHaveLength(1); // both share one trailer
+
+		const split = solveOk(
+			[item(1, 0), item(1, 0), item(1, 0)],
+			[veh({ pesoMax: 99, fleet: 5, carretas: [carreta({ length: 1, gap: 1 })] })],
+			"vehicles",
+		);
+		expect(split.objectiveValue).toBe(2); // third cargo needs a second rig
+	});
+
+	it("collapses minimize-cost to minimize-vehicles when all costs are zero", () => {
+		// frete/pedágio/custoMín all 0 → every trip costs 0 → the lexicographic
+		// tiebreaker (trip count) decides, exactly like the vehicles objective
+		const items = [item(50), item(50), item(50)];
+		const vehicles = [
+			veh({ pesoMax: 100, fleet: 5, freight: 0, toll: 0, minCharge: 0 }),
+		];
+		const byCost = solveOk(items, vehicles, "cost");
+		const byVehicles = solveOk(items, vehicles, "vehicles");
+		expect(byCost.objectiveValue).toBe(0);
+		expect(byCost.compositions.length).toBe(byVehicles.compositions.length);
+		// both minimize to 2 trips
+		expect(byVehicles.objectiveValue).toBe(2);
+		for (const comp of byCost.compositions) expect(comp).toHaveLength(2);
 	});
 });
 
@@ -256,12 +331,9 @@ describe("solve – edge cases", () => {
 
 describe("solve – all optimal compositions", () => {
 	it("breaks cost ties by fewest trips (lexicographic tiebreaker)", () => {
-		// 3×50 in a W=100 vehicle, no min charge: cost is 150 for every feasible
-		// partition (sizes ≤2). The trip-count tiebreaker then drops the 3-trip
-		// all-singletons, leaving only the two 2-trip tilings: [01][2], [0][12].
 		const result = solveOk(
 			[item(50), item(50), item(50)],
-			[veh({ W: 100, fleet: 5 })],
+			[veh({ pesoMax: 100, fleet: 5 })],
 			"cost",
 		);
 		expect(result.objectiveValue).toBe(150);
@@ -270,10 +342,9 @@ describe("solve – all optimal compositions", () => {
 	});
 
 	it("enumerates every minimum-trip partition", () => {
-		// minimum is 2 trips, reachable as [01][2] or [0][12]
 		const result = solveOk(
 			[item(50), item(50), item(50)],
-			[veh({ W: 100, fleet: 5 })],
+			[veh({ pesoMax: 100, fleet: 5 })],
 			"vehicles",
 		);
 		expect(result.objectiveValue).toBe(2);
@@ -281,11 +352,9 @@ describe("solve – all optimal compositions", () => {
 	});
 
 	it("enumerates ties across vehicle classes", () => {
-		// 3 forced singletons, classes A and B each capped at 2: every assignment
-		// with ≤2 of each class is optimal → C(3,2)+C(3,1) = 6 compositions
 		const result = solveOk(
 			[item(50), item(50), item(50)],
-			[veh({ W: 60, fleet: 2 }), veh({ W: 60, fleet: 2 })],
+			[veh({ pesoMax: 60, fleet: 2 }), veh({ pesoMax: 60, fleet: 2 })],
 			"cost",
 		);
 		expect(result.objectiveValue).toBe(150);
@@ -297,11 +366,10 @@ describe("solve – all optimal compositions", () => {
 
 describe("solve – larger fixture", () => {
 	it("optimally pairs a 12-cargo sequence under a unique optimum", () => {
-		// 12 identical units, capacity 2 per trip, min charge flat at 100. Cost is
-		// 100 per trip, so the optimum is the fewest trips (6) — uniquely achieved
-		// by the perfect contiguous pairing.
+		// 12 units, 2 per trip (pesoMax 100), flat R$100 minimum charge per trip.
+		// Cost is 100 per trip → fewest trips (6), uniquely the perfect pairing.
 		const items = Array.from({ length: 12 }, () => item(50));
-		const vehicles = [veh({ W: 100, wmin: 100, fleet: 20 })];
+		const vehicles = [veh({ pesoMax: 100, minCharge: 100, fleet: 20 })];
 
 		const cost = solveOk(items, vehicles, "cost");
 		expect(cost.objectiveValue).toBe(600);
@@ -309,7 +377,7 @@ describe("solve – larger fixture", () => {
 		expect(cost.compositions[0]).toHaveLength(6);
 		for (const trip of cost.compositions[0]) {
 			expect(trip.units).toBe(2);
-			expect(trip.c).toBe(100);
+			expect(trip.r).toBe(100);
 		}
 
 		const trips = solveOk(items, vehicles, "vehicles");
@@ -322,15 +390,29 @@ describe("solve – larger fixture", () => {
 		const lengths = [1.5, 1.8, 1.4, 2.2, 1.6, 1.5, 2.0, 1.3, 1.7, 1.9];
 		const items = weights.map((w, i) => item(w, lengths[i]));
 		const vehicles = [
-			veh({ name: "A", W: 15000, wmin: 10000, L: 5, gap: 0.2, fleet: 20 }),
-			veh({ name: "B", W: 35000, wmin: 25000, L: 14, gap: 0.5, fleet: 5 }),
+			veh({
+				name: "A",
+				pesoMax: 15000,
+				minCharge: 10000,
+				freight: 0.45,
+				carretas: [carreta({ capacity: 15000, length: 5, gap: 0.2 })],
+				fleet: 20,
+			}),
+			veh({
+				name: "B",
+				pesoMax: 35000,
+				minCharge: 25000,
+				freight: 0.38,
+				carretas: [
+					carreta({ capacity: 18000, length: 7, gap: 0.5 }),
+					carreta({ capacity: 18000, length: 7, gap: 0.5 }),
+				],
+				fleet: 5,
+			}),
 		];
 
 		const result = solveOk(items, vehicles, "cost");
-		expect(result.config.useWeight).toBe(true);
-		expect(result.config.useLength).toBe(true);
 		expect(result.objectiveValue).toBeGreaterThan(0);
-		// solveOk already validated every returned composition
 		expect(result.compositions.length).toBeGreaterThan(0);
 	});
 });
