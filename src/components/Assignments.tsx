@@ -105,7 +105,6 @@ function AssignmentsBody({ solved }: { solved: Solved | null }) {
 					key={ci}
 					composition={composition}
 					index={ci}
-					total={result.compositionCount}
 					vehicles={vehicles}
 					colors={colors}
 				/>

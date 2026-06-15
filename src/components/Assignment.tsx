@@ -13,13 +13,11 @@ import { BOLD, TableCell } from "./primitives";
 export function Assignment({
 	composition,
 	index,
-	total,
 	vehicles,
 	colors,
 }: {
 	composition: Trip[];
 	index: number; // 0-based position in the sample
-	total: number; // compositionCount (how many optima exist)
 	vehicles: Vehicle[];
 	colors: string[];
 }) {
@@ -43,9 +41,7 @@ export function Assignment({
 			{/* Third layer: the composition number spans the whole block via flex
 			    stretch — no separate header row. The body (flex 9) holds the trips and
 			    the Total and mirrors the column header's nesting so columns line up. */}
-			<TableCell style={BOLD}>
-				{index + 1}/{fmt(total)}
-			</TableCell>
+			<TableCell style={BOLD}>{index + 1}</TableCell>
 			<div
 				className="bg"
 				style={{ flex: 9, flexDirection: "column", minWidth: 0 }}
@@ -62,8 +58,9 @@ export function Assignment({
 				))}
 				{/* Mirror AssignedVehicle's nesting (identity · flex:5 carreta group ·
 				    costs) so the Total's columns line up with the rows above. */}
+				{/* No "Total" label — just bold aggregators in the columns that sum. */}
 				<div className="bg" style={{ minHeight: "var(--row-height, 0px)" }}>
-					<TableCell style={BOLD}>Total</TableCell>
+					<TableCell> </TableCell>
 					<TableCell> </TableCell>
 					<div className="bg" style={{ flex: 5, minWidth: 0 }}>
 						<TableCell> </TableCell>
