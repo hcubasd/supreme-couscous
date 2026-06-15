@@ -4,9 +4,11 @@
 export function ExportButton({
 	filename,
 	build,
+	disabled,
 }: {
 	filename: string;
 	build: () => string;
+	disabled?: boolean;
 }) {
 	const onClick = () => {
 		const blob = new Blob([`﻿${build()}`], {
@@ -21,7 +23,7 @@ export function ExportButton({
 	};
 
 	return (
-		<button type="button" onClick={onClick}>
+		<button type="button" onClick={onClick} disabled={disabled}>
 			Exportar
 		</button>
 	);

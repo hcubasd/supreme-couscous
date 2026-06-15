@@ -14,8 +14,6 @@ import { useGrowingRows } from "./helpers/rows";
 
 // App is the scaffolding: it holds the shared state (the cargo and fleet tables,
 // the objective, and the last solve), wires solve/clear, and lays out the page.
-// The whole parameter+results area is one <form> so the Calcular submit button
-// runs the browser's native validity check first — flagging any half-filled row.
 export default function App() {
 	const rootRef = useRef<HTMLDivElement>(null);
 	const cargo = useGrowingRows(2, DUMMY_CARGO, "supreme-couscous:cargo");
@@ -45,6 +43,16 @@ export default function App() {
 	};
 
 	const handleSolve = () => {
+		// Native validation without a <form> (this is a SPA — nothing is submitted):
+		// a "started but half-filled" row leaves a required input empty, so the first
+		// :invalid input gets the browser's own warning bubble and we stop.
+		const invalid =
+			rootRef.current?.querySelector<HTMLInputElement>("input:invalid");
+		if (invalid) {
+			invalid.reportValidity();
+			return;
+		}
+
 		const vehicles = toVehicles(fleet.classes);
 		const colors = vehicles.map((_, i) => toRgb(vehiclePalette[i]));
 		setSolved({
@@ -66,26 +74,16 @@ export default function App() {
 					Alocador exato de frota para operações de transporte de cargas pesadas
 				</h1>
 			</Label>
-			{/* display:contents keeps the form transparent to the flex layout and to
-			    the bg/fg collection (it isn't a div, so it's neither colored nor a
-			    squeeze pair) while still capturing the Calcular submit + validation. */}
-			<form
-				style={{ display: "contents" }}
-				onSubmit={(e) => {
-					e.preventDefault();
-					handleSolve();
-				}}
-			>
-				<div className="bg" style={{ flex: 1, flexDirection: "column" }}>
-					<Parameters cargo={cargo} fleet={fleet} palette={vehiclePalette} />
-					<Results
-						objective={objective}
-						setObjective={setObjective}
-						onClear={handleClear}
-						solved={solved}
-					/>
-				</div>
-			</form>
+			<div className="bg" style={{ flex: 1, flexDirection: "column" }}>
+				<Parameters cargo={cargo} fleet={fleet} palette={vehiclePalette} />
+				<Results
+					objective={objective}
+					setObjective={setObjective}
+					onSolve={handleSolve}
+					onClear={handleClear}
+					solved={solved}
+				/>
+			</div>
 		</div>
 	);
 }
