@@ -197,3 +197,39 @@ export function useGrowingFleet(initial: StoredClass[] = [], storageKey?: string
 
 	return { classes, setClassCell, setTrailerCell, clear, replace };
 }
+
+// CSV (flat, one row per trailer) ↔ nested classes, the Option-A convention: each
+// trailer row repeats its class fields. Grouping: a new class name starts a class;
+// the same name again, or a blank name, continues the current one (so both the
+// repeat and the collapsed styles parse). Column layout per row:
+//   0 name · 1..6 class fields · 7 carreta (informational) · 8..10 trailer fields
+export function rowsToClasses(rows: string[][]): StoredClass[] {
+	const groups: StoredClass[] = [];
+	let current: StoredClass | null = null;
+	for (const row of rows) {
+		const name = (row[0] ?? "").trim();
+		if (name !== "" && (!current || current.values[0] !== name)) {
+			current = { values: row.slice(0, CLASS_FIELDS), trailers: [] };
+			groups.push(current);
+		}
+		if (!current) continue; // leading blank-name rows have no class to join
+		current.trailers.push({ values: row.slice(8, 8 + TRAILER_FIELDS) });
+	}
+	return groups;
+}
+
+// Flatten the live classes to CSV rows: one row per non-empty trailer, the class
+// fields repeated, with an automatic carreta number in column 7. Empty classes and
+// trailers (the ghost rows) are skipped.
+export function classesToRows(classes: ClassRow[]): string[][] {
+	const rows: string[][] = [];
+	for (const c of classes) {
+		if (classEmpty(c)) continue;
+		c.trailers
+			.filter((t) => !trailerEmpty(t))
+			.forEach((t, i) => {
+				rows.push([...c.values, String(i + 1), ...t.values]);
+			});
+	}
+	return rows;
+}

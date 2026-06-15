@@ -1,5 +1,5 @@
 import { useRef } from "react";
-import { importCsv } from "../helpers/csv";
+import { importRows } from "../helpers/csv";
 
 // A file picker dressed as a plain button: the visible button proxies a click to
 // a hidden file input, reads the chosen CSV, validates it against the expected
@@ -26,7 +26,7 @@ export function ImportButton({
 				onChange={async (e) => {
 					const file = e.target.files?.[0];
 					if (file) {
-						const result = importCsv(await file.text(), columns);
+						const result = importRows(await file.text(), columns);
 						if (result.ok) onRows(result.rows);
 						else window.alert(result.error);
 					}

@@ -1,18 +1,14 @@
-import { ImportButton } from "./ImportButton";
+import type { ReactNode } from "react";
 
-// A table heading: the title and its import button share one fg, so squeezeFg
-// fits them together and the 1em gap scales with the font — same contract as the
-// controls panel.
+// A table heading: the title and any action buttons (Importar/Exportar) share one
+// fg, so squeezeFg fits them together and the 1em gap scales with the font — same
+// contract as the controls panel.
 export function TableHeading({
 	title,
-	columns,
-	onImport,
+	actions,
 }: {
 	title: string;
-	// Import is optional: a table gets an Importar button only when both are given
-	// (the vehicle table's import/export lands in a later phase).
-	columns?: number;
-	onImport?: (rows: string[][]) => void;
+	actions?: ReactNode;
 }) {
 	return (
 		<div
@@ -29,9 +25,7 @@ export function TableHeading({
 				}}
 			>
 				<h3>{title}</h3>
-				{columns !== undefined && onImport && (
-					<ImportButton columns={columns} onRows={onImport} />
-				)}
+				{actions}
 			</div>
 		</div>
 	);

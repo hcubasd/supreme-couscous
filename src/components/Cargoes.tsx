@@ -1,9 +1,14 @@
 import { useLayoutEffect } from "react";
+import { toCsv } from "../helpers/csv";
 import { recolor } from "../helpers/layout";
 import type { Row } from "../helpers/rows";
 import { Cargo } from "./Cargo";
+import { ExportButton } from "./ExportButton";
+import { ImportButton } from "./ImportButton";
 import { TableHeading } from "./TableHeading";
 import { TableLabel } from "./primitives";
+
+const CARGO_HEADER = ["Peso (kg)", "Comprimento (m)"];
 
 // The cargo parameter table: heading + column labels + the editable rows.
 export function Cargoes({
@@ -29,7 +34,25 @@ export function Cargoes({
 
 	return (
 		<div className="bg" style={{ flex: 1, flexDirection: "column" }}>
-			<TableHeading title="Cargas" columns={2} onImport={onImport} />
+			<TableHeading
+				title="Cargas"
+				actions={
+					<>
+						<ImportButton columns={2} onRows={onImport} />
+						<ExportButton
+							filename="cargas.csv"
+							build={() =>
+								toCsv(
+									CARGO_HEADER,
+									rows
+										.map((row) => row.values)
+										.filter((values) => values.some((v) => v.trim() !== "")),
+								)
+							}
+						/>
+					</>
+				}
+			/>
 			<div className="bg" style={{ flex: 1, flexDirection: "column" }}>
 				<div className="bg">
 					<TableLabel>

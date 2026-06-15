@@ -1,7 +1,14 @@
 import { useLayoutEffect } from "react";
-import type { FleetController } from "../helpers/fleet";
+import { toCsv } from "../helpers/csv";
+import {
+	classesToRows,
+	type FleetController,
+	rowsToClasses,
+} from "../helpers/fleet";
 import { type Rgb, toRgb } from "../helpers/format";
 import { recolor } from "../helpers/layout";
+import { ExportButton } from "./ExportButton";
+import { ImportButton } from "./ImportButton";
 import { TableHeading } from "./TableHeading";
 import { TableLabel } from "./primitives";
 import { Vehicle } from "./Vehicle";
@@ -47,7 +54,26 @@ export function Vehicles({
 
 	return (
 		<div className="bg" style={{ flex: 1, flexDirection: "column" }}>
-			<TableHeading title="Veículos" />
+			<TableHeading
+				title="Veículos"
+				actions={
+					<>
+						<ImportButton
+							columns={CLASS_HEADERS.length + TRAILER_HEADERS.length}
+							onRows={(rows) => fleet.replace(rowsToClasses(rows))}
+						/>
+						<ExportButton
+							filename="veiculos.csv"
+							build={() =>
+								toCsv(
+									[...CLASS_HEADERS, ...TRAILER_HEADERS],
+									classesToRows(classes),
+								)
+							}
+						/>
+					</>
+				}
+			/>
 			<div className="bg" style={{ flex: 1, flexDirection: "column" }}>
 				{/* Mirror each Vehicle block's nesting (7 class cells + a flex:4 trailer
 				    group) so the 1px gaps line up at the same nesting depth. */}
