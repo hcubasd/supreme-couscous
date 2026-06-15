@@ -1,6 +1,8 @@
 import type { Objective } from "../helpers/optimizer";
+import { buildResultsCsv } from "../helpers/results";
 import { Assignments, type Solved } from "./Assignments";
 import { Controls } from "./Controls";
+import { ExportButton } from "./ExportButton";
 import { Label } from "./primitives";
 
 // The whole output half of the app: the section title over the controls panel and
@@ -27,6 +29,16 @@ export function Results({
 					objective={objective}
 					setObjective={setObjective}
 					onClear={onClear}
+					actions={
+						solved?.result.status === "success" ? (
+							<ExportButton
+								filename="resultado.csv"
+								build={() =>
+									buildResultsCsv(solved.result, solved.vehicles)
+								}
+							/>
+						) : null
+					}
 				/>
 				<Assignments solved={solved} />
 			</div>

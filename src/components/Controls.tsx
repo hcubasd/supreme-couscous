@@ -1,16 +1,20 @@
+import type { ReactNode } from "react";
 import type { Objective } from "../helpers/optimizer";
 
 // The objective radios and the action buttons. Everything sits in one fg so
 // squeezeFg fits the whole panel together and the 1em gaps scale with the font;
 // --controls-margin (set by refit) vertically centers it against the results h3.
+// `actions` holds result-dependent buttons (e.g. Exportar) shown after Limpar.
 export function Controls({
 	objective,
 	setObjective,
 	onClear,
+	actions,
 }: {
 	objective: Objective;
 	setObjective: (objective: Objective) => void;
 	onClear: () => void;
+	actions?: ReactNode;
 }) {
 	return (
 		<div className="bg" style={{ justifyContent: "center" }}>
@@ -56,6 +60,7 @@ export function Controls({
 				<button id="clear-button" type="button" onClick={onClear}>
 					Limpar
 				</button>
+				{actions}
 			</div>
 		</div>
 	);
