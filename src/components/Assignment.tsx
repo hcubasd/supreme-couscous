@@ -1,7 +1,7 @@
 import { fmt, fmtBRL, fmtLen } from "../helpers/format";
 import type { Trip, Vehicle } from "../helpers/optimizer";
 import { AssignedVehicle } from "./AssignedVehicle";
-import { BOLD, Cell, TableCell } from "./primitives";
+import { BOLD, TableCell } from "./primitives";
 
 // One composition (one full partition of the cargo sequence into trips): a bg
 // column of AssignedVehicle lines, headed by its label and footed by a Total row.
@@ -39,34 +39,42 @@ export function Assignment({
 	}
 
 	return (
-		<div className="bg" style={{ flexDirection: "column", flexShrink: 0 }}>
-			<Cell style={{ ...BOLD, minHeight: "var(--row-height, 0px)" }}>
-				Composição {index + 1} de {fmt(total)}
-			</Cell>
-			{composition.map((trip, ti) => (
-				<AssignedVehicle
-					// biome-ignore lint/suspicious/noArrayIndexKey: trips are positional and stable for a given solve
-					key={ti}
-					order={ti + 1}
-					name={vehicles[trip.vIdx].name}
-					color={colors[trip.vIdx]}
-					trip={trip}
-				/>
-			))}
-			{/* Mirror AssignedVehicle's nesting (identity · flex:5 carreta group ·
-			    costs) so the Total's columns line up with the rows above. */}
-			<div className="bg" style={{ minHeight: "var(--row-height, 0px)" }}>
-				<TableCell style={BOLD}>Total</TableCell>
-				<TableCell> </TableCell>
-				<div className="bg" style={{ flex: 5, minWidth: 0 }}>
+		<div className="bg" style={{ flexShrink: 0 }}>
+			{/* Third layer: the composition number spans the whole block via flex
+			    stretch — no separate header row. The body (flex 9) holds the trips and
+			    the Total and mirrors the column header's nesting so columns line up. */}
+			<TableCell style={BOLD}>
+				{index + 1}/{fmt(total)}
+			</TableCell>
+			<div
+				className="bg"
+				style={{ flex: 9, flexDirection: "column", minWidth: 0 }}
+			>
+				{composition.map((trip, ti) => (
+					<AssignedVehicle
+						// biome-ignore lint/suspicious/noArrayIndexKey: trips are positional and stable for a given solve
+						key={ti}
+						order={ti + 1}
+						name={vehicles[trip.vIdx].name}
+						color={colors[trip.vIdx]}
+						trip={trip}
+					/>
+				))}
+				{/* Mirror AssignedVehicle's nesting (identity · flex:5 carreta group ·
+				    costs) so the Total's columns line up with the rows above. */}
+				<div className="bg" style={{ minHeight: "var(--row-height, 0px)" }}>
+					<TableCell style={BOLD}>Total</TableCell>
 					<TableCell> </TableCell>
-					<TableCell style={BOLD}>{totalUnits}</TableCell>
-					<TableCell> </TableCell>
-					<TableCell style={BOLD}>{fmt(totalW)}</TableCell>
-					<TableCell style={BOLD}>{fmtLen(totalL)}</TableCell>
+					<div className="bg" style={{ flex: 5, minWidth: 0 }}>
+						<TableCell> </TableCell>
+						<TableCell style={BOLD}>{totalUnits}</TableCell>
+						<TableCell> </TableCell>
+						<TableCell style={BOLD}>{fmt(totalW)}</TableCell>
+						<TableCell style={BOLD}>{fmtLen(totalL)}</TableCell>
+					</div>
+					<TableCell style={BOLD}>{fmt(totalC)}</TableCell>
+					<TableCell style={BOLD}>{fmtBRL(totalR)}</TableCell>
 				</div>
-				<TableCell style={BOLD}>{fmt(totalC)}</TableCell>
-				<TableCell style={BOLD}>{fmtBRL(totalR)}</TableCell>
 			</div>
 		</div>
 	);
