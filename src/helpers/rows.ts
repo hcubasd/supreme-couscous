@@ -117,3 +117,7 @@ export function useGrowingRows(
 
 	return { rows, setCell, clear, replace };
 }
+
+// The handle returned by useGrowingRows — passed down so components can read the
+// rows and mutate them (edit a cell, clear, or replace via import).
+export type RowController = ReturnType<typeof useGrowingRows>;

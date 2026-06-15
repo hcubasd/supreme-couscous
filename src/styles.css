@@ -56,3 +56,14 @@ input {
 	font-family: system-ui sans-serif;
 	line-height: var(--row-line-height);
 }
+
+/* Data cells do NOT participate in squeezeFg (collectPairs only gathers .fg).
+   They inherit the squeezed font via --font-size and crop instead of pushing the
+   layout — squeeze fits the static headers/controls, cells just live within it.
+   Their bg wrapper carries overflow:hidden to do the cropping. */
+.cell {
+	font-family: system-ui sans-serif;
+	font-size: var(--font-size);
+	line-height: var(--row-line-height);
+	white-space: nowrap;
+}
