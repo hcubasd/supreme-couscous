@@ -1,4 +1,5 @@
 import { useRef } from "react";
+import { ANSI } from "../helpers/color";
 import { importRows } from "../helpers/csv";
 import { t } from "../helpers/locale";
 
@@ -22,9 +23,8 @@ export function ImportButton({
 				onClick={() => inputRef.current?.click()}
 				title={t.importBtn}
 				aria-label={t.importBtn}
-			>
-				▼
-			</button>
+				style={{ background: ANSI.green }}
+			/>
 			<input
 				ref={inputRef}
 				type="file"

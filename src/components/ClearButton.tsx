@@ -1,3 +1,4 @@
+import { ANSI } from "../helpers/color";
 import { t } from "../helpers/locale";
 
 // Clears one panel's data (cargo, fleet, or results), after a confirm.
@@ -10,8 +11,7 @@ export function ClearButton({ onClear }: { onClear: () => void }) {
 			}}
 			title={t.clear}
 			aria-label={t.clear}
-		>
-			{"◼︎"}
-		</button>
+			style={{ background: ANSI.red }}
+		/>
 	);
 }

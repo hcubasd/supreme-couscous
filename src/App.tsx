@@ -30,7 +30,6 @@ export default function App() {
 		() => palette(cargo.rows.length, 75, cargoVariation),
 		[cargo.rows.length, cargoVariation],
 	);
-	const [objective, setObjective] = useState<Objective>("cost");
 	const [solved, setSolved] = useState<Solved | null>(null);
 
 	useEffect(() => {
@@ -44,7 +43,7 @@ export default function App() {
 		return () => window.removeEventListener("resize", onResize);
 	}, []);
 
-	const handleSolve = () => {
+	const handleSolve = (objective: Objective) => {
 		// Native validation without a <form> (this is a SPA — nothing is submitted):
 		// a "started but half-filled" row leaves a required input empty, so the first
 		// :invalid input gets the browser's own warning bubble and we stop.
@@ -85,8 +84,6 @@ export default function App() {
 					cargoPalette={cargoPalette}
 				/>
 				<Results
-					objective={objective}
-					setObjective={setObjective}
 					onSolve={handleSolve}
 					onClear={() => setSolved(null)}
 					solved={solved}

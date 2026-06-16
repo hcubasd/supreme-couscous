@@ -10,15 +10,11 @@ import { Label } from "./primitives";
 // the results table. Solve/clear orchestration lives in App; this just wires the
 // callbacks and the last solve through.
 export function Results({
-	objective,
-	setObjective,
 	onSolve,
 	onClear,
 	solved,
 }: {
-	objective: Objective;
-	setObjective: (objective: Objective) => void;
-	onSolve: () => void;
+	onSolve: (objective: Objective) => void;
 	onClear: () => void;
 	solved: Solved | null;
 }) {
@@ -29,8 +25,6 @@ export function Results({
 					<h2>{t.results}</h2>
 				</Label>
 				<Controls
-					objective={objective}
-					setObjective={setObjective}
 					onSolve={onSolve}
 					onClear={onClear}
 					// Always render Exportar (so it's in the mount-time squeeze set),

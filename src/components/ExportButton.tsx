@@ -1,3 +1,4 @@
+import { ANSI } from "../helpers/color";
 import { t } from "../helpers/locale";
 
 // A plain button that downloads a CSV. `build` is called on click to produce the
@@ -31,8 +32,7 @@ export function ExportButton({
 			disabled={disabled}
 			title={t.exportBtn}
 			aria-label={t.exportBtn}
-		>
-			▲
-		</button>
+			style={{ background: ANSI.yellow, opacity: disabled ? 0.4 : 1 }}
+		/>
 	);
 }
