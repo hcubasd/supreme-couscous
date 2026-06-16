@@ -1,4 +1,4 @@
-import { type ReactNode, useRef } from "react";
+import type { ReactNode } from "react";
 import { ANSI } from "../helpers/color";
 import { t } from "../helpers/locale";
 import type { Objective } from "../helpers/optimizer";
@@ -6,8 +6,9 @@ import { ClearButton } from "./ClearButton";
 import { ControlBar } from "./ControlBar";
 
 // The Resultados controls: three color dots (Calcular / Exportar / Limpar), like
-// the other panels. Calcular opens a modal asking which objective to minimize;
-// picking one runs the optimizer with it. Tooltips carry the meaning.
+// the other panels. Calcular prompts for the objective — the answer's first letter
+// decides (c → cost / custo, v → vehicles / veículos), so it reads in both locales;
+// an unrecognized or cancelled answer does nothing.
 export function Controls({
 	onSolve,
 	onClear,
@@ -17,38 +18,24 @@ export function Controls({
 	onClear: () => void;
 	actions?: ReactNode;
 }) {
-	const dialogRef = useRef<HTMLDialogElement>(null);
-
-	// Close first so a validation bubble (if the inputs are half-filled) isn't
-	// hidden behind the modal, then solve.
-	const choose = (objective: Objective) => {
-		dialogRef.current?.close();
-		onSolve(objective);
+	const onCalculate = () => {
+		const answer = window.prompt(t.minimizePrompt)?.trim().toLowerCase();
+		if (!answer) return;
+		if (answer.startsWith("c")) onSolve("cost");
+		else if (answer.startsWith("v")) onSolve("vehicles");
 	};
 
 	return (
 		<ControlBar>
 			<button
 				type="button"
-				onClick={() => dialogRef.current?.showModal()}
+				onClick={onCalculate}
 				title={t.calculate}
 				aria-label={t.calculate}
 				style={{ background: ANSI.green }}
 			/>
 			{actions}
 			<ClearButton onClear={onClear} />
-			<dialog ref={dialogRef}>
-				<p>{t.minimizePrompt}</p>
-				<button type="button" onClick={() => choose("cost")}>
-					{t.minimizeCost}
-				</button>
-				<button type="button" onClick={() => choose("vehicles")}>
-					{t.minimizeVehicles}
-				</button>
-				<button type="button" onClick={() => dialogRef.current?.close()}>
-					{t.cancel}
-				</button>
-			</dialog>
 		</ControlBar>
 	);
 }

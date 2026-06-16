@@ -29,20 +29,6 @@ button {
 	cursor: pointer;
 }
 
-/* The modal dialog isn't in the bg/fg squeeze tree (it's in the browser's top
-   layer), so it just borrows the squeezed --font-size. Its buttons are text, not
-   the color dots, so reset them from the pill sizing back to natural text size. */
-dialog {
-	font-size: var(--font-size);
-}
-
-dialog button {
-	width: auto;
-	height: auto;
-	border-radius: 0.25em;
-	padding: 0.25em 0.75em;
-}
-
 input {
 	font-size: var(--font-size);
 	box-sizing: border-box;
