@@ -40,9 +40,16 @@ export function AssignedVehicle({
 					>
 						<TableCell>{bi + 1}</TableCell>
 						<TableCell>{trailer.cargos.length}</TableCell>
-						<TableCell>
-							{trailer.cargos.map((i) => i + 1).join(", ")}
-						</TableCell>
+						{/* The cargo set is an inner row of one cell per cargo (crop, no
+						    squeeze) rather than a comma-joined string. */}
+						<div
+							className="bg"
+							style={{ flex: 1, minWidth: 0, overflow: "hidden" }}
+						>
+							{trailer.cargos.map((i) => (
+								<TableCell key={i}>{i + 1}</TableCell>
+							))}
+						</div>
 						<TableCell>{fmt(trailer.w)}</TableCell>
 						<TableCell>{fmtLen(trailer.l)}</TableCell>
 					</div>

@@ -141,7 +141,7 @@ const STRINGS: Record<Locale, Strings> = {
 		spacingM: "Spacing between cargo (m)",
 		composition: "Composition",
 		quantity: "Quantity",
-		cargos: "Cargo",
+		cargos: "Cargoes",
 		freightCost: "Freight",
 		tollCost: "Toll",
 		cost: "Cost",
