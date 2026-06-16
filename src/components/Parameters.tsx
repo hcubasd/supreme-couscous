@@ -1,5 +1,5 @@
-import type { FleetController } from "../helpers/fleet";
 import type { Rgb } from "../helpers/color";
+import type { FleetController } from "../helpers/fleet";
 import { t } from "../helpers/locale";
 import type { RowController } from "../helpers/rows";
 import { Cargoes } from "./Cargoes";
@@ -7,15 +7,18 @@ import { Label } from "./primitives";
 import { Vehicles } from "./Vehicles";
 
 // The whole input half of the app: the section title over the cargo and vehicle
-// tables. State lives in App and is threaded in via the row/fleet controllers.
+// tables. State lives in App and is threaded in via the row/fleet controllers; the
+// two palettes color the cargo ids and the vehicle classes independently.
 export function Parameters({
 	cargo,
 	fleet,
-	palette,
+	vehiclePalette,
+	cargoPalette,
 }: {
 	cargo: RowController;
 	fleet: FleetController;
-	palette: Rgb[];
+	vehiclePalette: Rgb[];
+	cargoPalette: Rgb[];
 }) {
 	return (
 		<div className="bg" style={{ flex: 1, flexDirection: "column" }}>
@@ -27,8 +30,9 @@ export function Parameters({
 					rows={cargo.rows}
 					setCell={cargo.setCell}
 					onImport={cargo.replace}
+					palette={cargoPalette}
 				/>
-				<Vehicles fleet={fleet} palette={palette} />
+				<Vehicles fleet={fleet} palette={vehiclePalette} />
 			</div>
 		</div>
 	);

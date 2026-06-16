@@ -9,18 +9,20 @@ export const DUMMY_CARGO: string[][] = [
 	["9000", "1,6"],
 ].map((row) => row.map(localizeDecimal));
 
-// One cargo row: its order number (muted on the trailing empty "new row") and the
-// weight/length fields.
+// One cargo row: its order number — the cargo id, tinted with its palette color
+// (muted on the trailing empty "new row") — and the weight/length fields.
 export function Cargo({
 	order,
 	values,
 	onChange,
 	muted,
+	color,
 }: {
 	order: number;
 	values: string[];
 	onChange: (field: number, value: string) => void;
 	muted?: boolean;
+	color?: string;
 }) {
 	// A "started" row (any cell typed in) requires all its cells, so the form's
 	// native validity check flags a half-filled row on Calcular. The trailing
@@ -32,7 +34,7 @@ export function Cargo({
 				style={{
 					height: "100%",
 					alignItems: "center",
-					color: muted ? MUTED : undefined,
+					color: muted ? MUTED : color,
 				}}
 			>
 				{order}

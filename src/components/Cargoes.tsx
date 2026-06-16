@@ -1,4 +1,5 @@
 import { useLayoutEffect } from "react";
+import { type Rgb, toRgb } from "../helpers/color";
 import { toCsv } from "../helpers/csv";
 import { recolor } from "../helpers/layout";
 import { CSV_DELIMITER, t } from "../helpers/locale";
@@ -17,10 +18,12 @@ export function Cargoes({
 	rows,
 	setCell,
 	onImport,
+	palette,
 }: {
 	rows: Row[];
 	setCell: (id: string, field: number, value: string) => void;
 	onImport: (rows: string[][]) => void;
+	palette: Rgb[];
 }) {
 	// Recolor whenever the set of rows changes — added, removed, or replaced by an
 	// import — so freshly mounted bg divs get their color. We key on row identity
@@ -87,6 +90,7 @@ export function Cargoes({
 							values={row.values}
 							onChange={(field, value) => setCell(row.id, field, value)}
 							muted={i === rows.length - 1}
+							color={toRgb(palette[i])}
 						/>
 					))}
 				</div>

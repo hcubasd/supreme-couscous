@@ -15,11 +15,13 @@ export function Assignment({
 	index,
 	vehicles,
 	colors,
+	cargoColors,
 }: {
 	composition: Trip[];
 	index: number; // 0-based position in the sample
 	vehicles: Vehicle[];
 	colors: string[];
+	cargoColors: string[];
 }) {
 	let totalUnits = 0;
 	let totalW = 0;
@@ -56,6 +58,7 @@ export function Assignment({
 						name={vehicles[trip.vIdx].name}
 						color={colors[trip.vIdx]}
 						trip={trip}
+						cargoColors={cargoColors}
 					/>
 				))}
 				{/* Mirror AssignedVehicle's nesting (identity · flex:5 carreta group ·

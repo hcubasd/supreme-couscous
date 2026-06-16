@@ -16,11 +16,13 @@ export function AssignedVehicle({
 	name,
 	color,
 	trip,
+	cargoColors,
 }: {
 	order: number;
 	name: string;
 	color: string;
 	trip: Trip;
+	cargoColors: string[];
 }) {
 	const beds = trip.beds ?? [];
 	return (
@@ -47,7 +49,9 @@ export function AssignedVehicle({
 							style={{ flex: 1, minWidth: 0, overflow: "hidden" }}
 						>
 							{trailer.cargos.map((i) => (
-								<TableCell key={i}>{i + 1}</TableCell>
+								<TableCell key={i} style={{ color: cargoColors[i] }}>
+									{i + 1}
+								</TableCell>
 							))}
 						</div>
 						<TableCell>{fmt(trailer.w)}</TableCell>

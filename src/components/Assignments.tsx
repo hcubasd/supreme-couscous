@@ -12,7 +12,8 @@ import { TableCell, TableLabel } from "./primitives";
 export type Solved = {
 	result: SolveResult;
 	vehicles: Vehicle[];
-	colors: string[];
+	colors: string[]; // per vehicle class
+	cargoColors: string[]; // per cargo id
 };
 
 // Split to mirror an AssignedVehicle's nesting: identity (Ordem, Classe), then the
@@ -108,6 +109,7 @@ function AssignmentsBody({ solved }: { solved: Solved | null }) {
 					index={ci}
 					vehicles={vehicles}
 					colors={colors}
+					cargoColors={solved.cargoColors}
 				/>
 			))}
 			{result.compositionCount > result.compositions.length && (

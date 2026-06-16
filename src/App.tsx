@@ -1,12 +1,11 @@
-import { matchColors } from "miniature-waffle";
 import { useEffect, useMemo, useRef, useState } from "react";
 import type { Solved } from "./components/Assignments";
 import { DUMMY_CARGO } from "./components/Cargo";
 import { Label } from "./components/primitives";
 import { Parameters } from "./components/Parameters";
 import { Results } from "./components/Results";
+import { palette, randomVariation, toRgb } from "./helpers/color";
 import { DUMMY_FLEET, useGrowingFleet } from "./helpers/fleet";
-import { toRgb } from "./helpers/color";
 import { recolor, refit } from "./helpers/layout";
 import { LOCALE, t } from "./helpers/locale";
 import { toItems, toVehicles } from "./helpers/mapping";
@@ -19,9 +18,17 @@ export default function App() {
 	const rootRef = useRef<HTMLDivElement>(null);
 	const cargo = useGrowingRows(2, DUMMY_CARGO, "supreme-couscous:cargo");
 	const fleet = useGrowingFleet(DUMMY_FLEET, "supreme-couscous:fleet");
+	// Random rotations picked once per mount (refresh), independent so vehicle and
+	// cargo palettes start at different hues.
+	const vehicleVariation = useRef(randomVariation()).current;
+	const cargoVariation = useRef(randomVariation()).current;
 	const vehiclePalette = useMemo(
-		() => matchColors(fleet.classes.length, 75)[0],
-		[fleet.classes.length],
+		() => palette(fleet.classes.length, 75, vehicleVariation),
+		[fleet.classes.length, vehicleVariation],
+	);
+	const cargoPalette = useMemo(
+		() => palette(cargo.rows.length, 75, cargoVariation),
+		[cargo.rows.length, cargoVariation],
 	);
 	const [objective, setObjective] = useState<Objective>("cost");
 	const [solved, setSolved] = useState<Solved | null>(null);
@@ -55,12 +62,15 @@ export default function App() {
 			return;
 		}
 
+		const items = toItems(cargo.rows);
 		const vehicles = toVehicles(fleet.classes);
 		const colors = vehicles.map((_, i) => toRgb(vehiclePalette[i]));
+		const cargoColors = items.map((_, i) => toRgb(cargoPalette[i]));
 		setSolved({
-			result: solve(toItems(cargo.rows), vehicles, objective),
+			result: solve(items, vehicles, objective),
 			vehicles,
 			colors,
+			cargoColors,
 		});
 	};
 
@@ -75,7 +85,12 @@ export default function App() {
 				<h1>{t.appTitle}</h1>
 			</Label>
 			<div className="bg" style={{ flex: 1, flexDirection: "column" }}>
-				<Parameters cargo={cargo} fleet={fleet} palette={vehiclePalette} />
+				<Parameters
+					cargo={cargo}
+					fleet={fleet}
+					vehiclePalette={vehiclePalette}
+					cargoPalette={cargoPalette}
+				/>
 				<Results
 					objective={objective}
 					setObjective={setObjective}
