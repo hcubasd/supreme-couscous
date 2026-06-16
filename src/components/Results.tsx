@@ -24,10 +24,10 @@ export function Results({
 }) {
 	return (
 		<div className="bg" style={{ flex: 1, flexDirection: "column" }}>
-			<Label>
-				<h2>{t.results}</h2>
-			</Label>
-			<div className="bg" style={{ flex: 1, flexDirection: "column" }}>
+			<div className="bg">
+				<Label style={{ flex: 1 }}>
+					<h2>{t.results}</h2>
+				</Label>
 				<Controls
 					objective={objective}
 					setObjective={setObjective}
@@ -45,8 +45,8 @@ export function Results({
 						/>
 					}
 				/>
-				<Assignments solved={solved} />
 			</div>
+			<Assignments solved={solved} />
 		</div>
 	);
 }

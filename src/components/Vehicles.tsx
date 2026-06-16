@@ -1,11 +1,11 @@
 import { useLayoutEffect } from "react";
+import { type Rgb, toRgb } from "../helpers/color";
 import { toCsv } from "../helpers/csv";
 import {
 	classesToRows,
 	type FleetController,
 	rowsToClasses,
 } from "../helpers/fleet";
-import { type Rgb, toRgb } from "../helpers/color";
 import { recolor } from "../helpers/layout";
 import { CSV_DELIMITER, t } from "../helpers/locale";
 import { csvCellToInput, csvNumber } from "../helpers/number";
@@ -32,9 +32,10 @@ const TRAILER_HEADERS = [
 	t.spacingM,
 ];
 
-// The vehicle (fleet) parameter table: heading + the 11 column labels + one
-// editable class block per vehicle class. The trailer columns (Carreta + three
-// physical fields) are grouped under each class's tall per-class cells.
+// The vehicle (fleet) parameter table: a header row (title + controls, 50/50) over
+// the 11 column labels and one editable class block per vehicle class. The trailer
+// columns (Carreta + three physical fields) are grouped under each class's tall
+// per-class cells.
 export function Vehicles({
 	fleet,
 	palette,
@@ -57,33 +58,34 @@ export function Vehicles({
 
 	return (
 		<div className="bg" style={{ flex: 1, flexDirection: "column" }}>
-			<Label>
-				<h3>{t.vehicles}</h3>
-			</Label>
-			<div className="bg" style={{ flex: 1, flexDirection: "column" }}>
-			<ControlBar>
-						<ImportButton
-							columns={CLASS_HEADERS.length + TRAILER_HEADERS.length}
-							onRows={(rows, decimal) =>
-								fleet.replace(
-									rowsToClasses(
-										rows.map((row) => row.map((c) => csvCellToInput(c, decimal))),
-									),
-								)
-							}
-						/>
-						<ExportButton
-							filename={t.vehiclesFile}
-							build={() =>
-								toCsv(
-									[...CLASS_HEADERS, ...TRAILER_HEADERS],
-									classesToRows(classes).map((row) => row.map(csvNumber)),
-									CSV_DELIMITER,
-								)
-							}
-						/>
-						<ClearButton onClear={fleet.clear} />
-			</ControlBar>
+			<div className="bg">
+				<Label style={{ flex: 1 }}>
+					<h3>{t.vehicles}</h3>
+				</Label>
+				<ControlBar>
+					<ImportButton
+						columns={CLASS_HEADERS.length + TRAILER_HEADERS.length}
+						onRows={(rows, decimal) =>
+							fleet.replace(
+								rowsToClasses(
+									rows.map((row) => row.map((c) => csvCellToInput(c, decimal))),
+								),
+							)
+						}
+					/>
+					<ExportButton
+						filename={t.vehiclesFile}
+						build={() =>
+							toCsv(
+								[...CLASS_HEADERS, ...TRAILER_HEADERS],
+								classesToRows(classes).map((row) => row.map(csvNumber)),
+								CSV_DELIMITER,
+							)
+						}
+					/>
+					<ClearButton onClear={fleet.clear} />
+				</ControlBar>
+			</div>
 			<div className="bg" style={{ flex: 1, flexDirection: "column" }}>
 				{/* Mirror each Vehicle block's nesting (7 class cells + a flex:4 trailer
 				    group) so the 1px gaps line up at the same nesting depth. */}
@@ -117,7 +119,6 @@ export function Vehicles({
 						/>
 					))}
 				</div>
-			</div>
 			</div>
 		</div>
 	);

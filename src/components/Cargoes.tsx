@@ -14,7 +14,8 @@ import { Label, TableLabel } from "./primitives";
 
 const CARGO_HEADER = [t.weightKg, t.lengthM];
 
-// The cargo parameter table: heading + column labels + the editable rows.
+// The cargo parameter table: a header row (title + controls, 50/50) over the
+// column labels and the editable rows.
 export function Cargoes({
 	rows,
 	setCell,
@@ -42,34 +43,35 @@ export function Cargoes({
 
 	return (
 		<div className="bg" style={{ flex: 1, flexDirection: "column" }}>
-			<Label>
-				<h3>{t.cargo}</h3>
-			</Label>
-			<div className="bg" style={{ flex: 1, flexDirection: "column" }}>
-			<ControlBar>
-				<ImportButton
-					columns={2}
-					onRows={(imported, decimal) =>
-						onImport(
-							imported.map((row) => row.map((c) => csvCellToInput(c, decimal))),
-						)
-					}
-				/>
-				<ExportButton
-					filename={t.cargoFile}
-					build={() =>
-						toCsv(
-							CARGO_HEADER,
-							rows
-								.map((row) => row.values)
-								.filter((values) => values.some((v) => v.trim() !== ""))
-								.map((values) => values.map(csvNumber)),
-							CSV_DELIMITER,
-						)
-					}
-				/>
-				<ClearButton onClear={onClear} />
-			</ControlBar>
+			<div className="bg">
+				<Label style={{ flex: 1 }}>
+					<h3>{t.cargo}</h3>
+				</Label>
+				<ControlBar>
+					<ImportButton
+						columns={2}
+						onRows={(imported, decimal) =>
+							onImport(
+								imported.map((row) => row.map((c) => csvCellToInput(c, decimal))),
+							)
+						}
+					/>
+					<ExportButton
+						filename={t.cargoFile}
+						build={() =>
+							toCsv(
+								CARGO_HEADER,
+								rows
+									.map((row) => row.values)
+									.filter((values) => values.some((v) => v.trim() !== ""))
+									.map((values) => values.map(csvNumber)),
+								CSV_DELIMITER,
+							)
+						}
+					/>
+					<ClearButton onClear={onClear} />
+				</ControlBar>
+			</div>
 			<div className="bg" style={{ flex: 1, flexDirection: "column" }}>
 				<div className="bg">
 					<TableLabel>
@@ -97,7 +99,6 @@ export function Cargoes({
 						/>
 					))}
 				</div>
-			</div>
 			</div>
 		</div>
 	);

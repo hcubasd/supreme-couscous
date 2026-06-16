@@ -117,7 +117,7 @@ const STRINGS: Record<Locale, Strings> = {
 		appTitle: "Exact fleet allocator for heavy-cargo transport operations",
 		parameters: "Parameters",
 		results: "Results",
-		cargo: "Cargo",
+		cargo: "Cargoes",
 		vehicles: "Vehicles",
 		importBtn: "Import",
 		exportBtn: "Export",
