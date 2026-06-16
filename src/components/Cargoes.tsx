@@ -73,13 +73,13 @@ export function Cargoes({
 			<div className="bg" style={{ flex: 1, flexDirection: "column" }}>
 				<div className="bg">
 					<TableLabel>
-						<h4>{t.order}</h4>
+						<b>{t.order}</b>
 					</TableLabel>
 					<TableLabel>
-						<h4>{t.weightKg}</h4>
+						<b>{t.weightKg}</b>
 					</TableLabel>
 					<TableLabel>
-						<h4>{t.lengthM}</h4>
+						<b>{t.lengthM}</b>
 					</TableLabel>
 				</div>
 				<div

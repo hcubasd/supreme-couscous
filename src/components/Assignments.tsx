@@ -45,24 +45,24 @@ export function Assignments({ solved }: { solved: Solved | null }) {
 		<div className="bg" style={{ flex: 1, flexDirection: "column" }}>
 			<div className="bg">
 				<TableLabel>
-					<h4>{t.composition}</h4>
+					<b>{t.composition}</b>
 				</TableLabel>
 				<div className="bg" style={{ flex: 10, minWidth: 0 }}>
 					{LEFT_HEADERS.map((header) => (
 						<TableLabel key={header}>
-							<h4>{header}</h4>
+							<b>{header}</b>
 						</TableLabel>
 					))}
 					<div className="bg" style={{ flex: 5, minWidth: 0 }}>
 						{CARRETA_HEADERS.map((header) => (
 							<TableLabel key={header}>
-								<h4>{header}</h4>
+								<b>{header}</b>
 							</TableLabel>
 						))}
 					</div>
 					{RIGHT_HEADERS.map((header) => (
 						<TableLabel key={header}>
-							<h4>{header}</h4>
+							<b>{header}</b>
 						</TableLabel>
 					))}
 				</div>

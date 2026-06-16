@@ -90,13 +90,13 @@ export function Vehicles({
 				<div className="bg">
 					{CLASS_HEADERS.map((header) => (
 						<TableLabel key={header}>
-							<h4>{header}</h4>
+							<b>{header}</b>
 						</TableLabel>
 					))}
 					<div className="bg" style={{ flex: 4, minWidth: 0 }}>
 						{TRAILER_HEADERS.map((header) => (
 							<TableLabel key={header}>
-								<h4>{header}</h4>
+								<b>{header}</b>
 							</TableLabel>
 						))}
 					</div>
