@@ -60,6 +60,7 @@ export function Vehicles({
 			<Label>
 				<h3>{t.vehicles}</h3>
 			</Label>
+			<div className="bg" style={{ flex: 1, flexDirection: "column" }}>
 			<ControlBar>
 						<ImportButton
 							columns={CLASS_HEADERS.length + TRAILER_HEADERS.length}
@@ -116,6 +117,7 @@ export function Vehicles({
 						/>
 					))}
 				</div>
+			</div>
 			</div>
 		</div>
 	);

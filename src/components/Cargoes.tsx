@@ -45,6 +45,7 @@ export function Cargoes({
 			<Label>
 				<h3>{t.cargo}</h3>
 			</Label>
+			<div className="bg" style={{ flex: 1, flexDirection: "column" }}>
 			<ControlBar>
 				<ImportButton
 					columns={2}
@@ -96,6 +97,7 @@ export function Cargoes({
 						/>
 					))}
 				</div>
+			</div>
 			</div>
 		</div>
 	);
