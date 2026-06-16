@@ -21,12 +21,12 @@ export type Solved = {
 const LEFT_HEADERS = [t.order, t.klass];
 const CARRETA_HEADERS = [
 	t.trailer,
-	t.cargoCount,
-	t.selectedCargo,
-	t.weightUsedKg,
-	t.lengthUsedM,
+	t.quantity,
+	t.cargos,
+	t.weightKg,
+	t.lengthM,
 ];
-const RIGHT_HEADERS = [t.chargedWeightKg, t.cost];
+const RIGHT_HEADERS = [t.freightCost, t.tollCost, t.cost];
 
 // The results table: a single column header over a scrolling list of Assignments
 // (one per optimal composition in the sample).
@@ -46,7 +46,7 @@ export function Assignments({ solved }: { solved: Solved | null }) {
 				<TableLabel>
 					<h4>{t.composition}</h4>
 				</TableLabel>
-				<div className="bg" style={{ flex: 9, minWidth: 0 }}>
+				<div className="bg" style={{ flex: 10, minWidth: 0 }}>
 					{LEFT_HEADERS.map((header) => (
 						<TableLabel key={header}>
 							<h4>{header}</h4>

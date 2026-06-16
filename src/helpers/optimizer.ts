@@ -50,15 +50,17 @@ export type Trailer = {
 	l: number; // occupied length on this trailer (Σℓ + internal gaps)
 };
 
-// One trip in a reconstructed solution.
+// One trip in a reconstructed solution. The cost is split into its two components
+// for display; r (their sum) is what the DP optimizes. Real weight isn't on the
+// trip — it's per-trailer (beds) and sums up in the results' Total row.
 export type Trip = {
 	start: number; // first cargo index (inclusive)
 	end: number; // last cargo index (inclusive)
 	vIdx: number; // vehicle class index
 	units: number; // cargos loaded (end - start + 1)
-	w: number; // real weight carried
-	c: number; // billable weight (kg) — equals w (the charge floor is now in R$)
-	r: number; // trip cost in R$: max(w × freight, minCharge) + axles × toll
+	freight: number; // freight charge: max(weight × freight rate, minCharge)
+	toll: number; // per-trip toll: axles × toll
+	r: number; // total cost = freight + toll
 	// One feasible per-trailer breakdown, filled only for materialized
 	// compositions. Always at least one trailer.
 	beds?: Trailer[];
@@ -263,9 +265,10 @@ function assignTrailers(
 type TripCandidate = {
 	end: number;
 	vehicleIdx: number;
-	totalW: number;
 	totalUnits: number;
-	reais: number; // max(w × freight, minCharge) + axles × toll, rounded to centavos
+	freight: number; // max(w × freight rate, minCharge), rounded to centavos
+	toll: number; // axles × toll, rounded to centavos
+	reais: number; // freight + toll
 };
 
 // For every start position, enumerate the feasible trips: contiguous runs of
@@ -288,21 +291,20 @@ function buildTrips(items: Item[], vehicles: Vehicle[]): TripCandidate[][] {
 
 			vehicles.forEach((vehicle, vehicleIdx) => {
 				if (!rigFits(items, start, end, sumW, vehicle)) return;
-				// Money cost: freight on the carried weight, floored by the minimum
-				// charge, with the per-trip toll (axles × R$/axle) added on top. Rounded
-				// to centavos so ties are exact on cents, not fragile on float dust.
-				const reais =
-					Math.round(
-						(Math.max(sumW * vehicle.freight, vehicle.minCharge) +
-							vehicle.axles * vehicle.toll) *
-							100,
-					) / 100;
+				// Cost components, each rounded to centavos (so they're exact line items
+				// and their sum is exact too): freight on the carried weight floored by
+				// the minimum charge, and the per-trip toll (axles × R$/axle).
+				const freight =
+					Math.round(Math.max(sumW * vehicle.freight, vehicle.minCharge) * 100) /
+					100;
+				const toll = Math.round(vehicle.axles * vehicle.toll * 100) / 100;
 				tripsFrom[start].push({
 					end,
 					vehicleIdx,
-					totalW: sumW,
 					totalUnits: nItems,
-					reais,
+					freight,
+					toll,
+					reais: freight + toll,
 				});
 			});
 		}
@@ -386,8 +388,8 @@ export function solve(
 					end: trip.end,
 					vIdx: vehicleIndex,
 					units: trip.totalUnits,
-					w: trip.totalW,
-					c: trip.totalW,
+					freight: trip.freight,
+					toll: trip.toll,
 					r: trip.reais,
 				};
 

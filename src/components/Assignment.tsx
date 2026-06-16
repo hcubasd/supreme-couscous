@@ -23,12 +23,14 @@ export function Assignment({
 }) {
 	let totalUnits = 0;
 	let totalW = 0;
-	let totalC = 0;
-	let totalR = 0;
 	let totalL = 0;
+	let totalFreight = 0;
+	let totalToll = 0;
+	let totalCost = 0;
 	for (const trip of composition) {
-		totalC += trip.c;
-		totalR += trip.r;
+		totalFreight += trip.freight;
+		totalToll += trip.toll;
+		totalCost += trip.r;
 		for (const trailer of trip.beds ?? []) {
 			totalUnits += trailer.cargos.length;
 			totalW += trailer.w;
@@ -44,7 +46,7 @@ export function Assignment({
 			<TableCell style={BOLD}>{index + 1}</TableCell>
 			<div
 				className="bg"
-				style={{ flex: 9, flexDirection: "column", minWidth: 0 }}
+				style={{ flex: 10, flexDirection: "column", minWidth: 0 }}
 			>
 				{composition.map((trip, ti) => (
 					<AssignedVehicle
@@ -69,8 +71,9 @@ export function Assignment({
 						<TableCell style={BOLD}>{fmt(totalW)}</TableCell>
 						<TableCell style={BOLD}>{fmtLen(totalL)}</TableCell>
 					</div>
-					<TableCell style={BOLD}>{fmt(totalC)}</TableCell>
-					<TableCell style={BOLD}>{fmtMoney(totalR)}</TableCell>
+					<TableCell style={BOLD}>{fmtMoney(totalFreight)}</TableCell>
+					<TableCell style={BOLD}>{fmtMoney(totalToll)}</TableCell>
+					<TableCell style={BOLD}>{fmtMoney(totalCost)}</TableCell>
 				</div>
 			</div>
 		</div>

@@ -161,9 +161,10 @@ describe("solve – basics", () => {
 		// weight 100 × freight 1 = 100, floored to the R$150 minimum charge
 		const result = solveOk([item(100)], [veh({ pesoMax: 200, minCharge: 150 })], "cost");
 		expect(result.objectiveValue).toBe(150);
+		// the floor lands on the freight component (no weight floor anymore)
+		expect(result.compositions[0][0].freight).toBe(150);
+		expect(result.compositions[0][0].toll).toBe(0);
 		expect(result.compositions[0][0].r).toBe(150);
-		// billable weight is still the real weight — the floor is on R$, not kg
-		expect(result.compositions[0][0].c).toBe(100);
 	});
 
 	it("adds the per-trip toll on top of the (floored) freight", () => {

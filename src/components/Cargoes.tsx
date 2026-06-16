@@ -38,30 +38,30 @@ export function Cargoes({
 		<div className="bg" style={{ flex: 1, flexDirection: "column" }}>
 			<TableHeading
 				title={t.cargo}
-				actions={
-					<>
-						<ImportButton
-							columns={2}
-							onRows={(imported, decimal) =>
-								onImport(
-									imported.map((row) => row.map((c) => csvCellToInput(c, decimal))),
-								)
-							}
-						/>
-						<ExportButton
-							filename={t.cargoFile}
-							build={() =>
-								toCsv(
-									CARGO_HEADER,
-									rows
-										.map((row) => row.values)
-										.filter((values) => values.some((v) => v.trim() !== ""))
-										.map((values) => values.map(csvNumber)),
-									CSV_DELIMITER,
-								)
-							}
-						/>
-					</>
+				before={
+					<ImportButton
+						columns={2}
+						onRows={(imported, decimal) =>
+							onImport(
+								imported.map((row) => row.map((c) => csvCellToInput(c, decimal))),
+							)
+						}
+					/>
+				}
+				after={
+					<ExportButton
+						filename={t.cargoFile}
+						build={() =>
+							toCsv(
+								CARGO_HEADER,
+								rows
+									.map((row) => row.values)
+									.filter((values) => values.some((v) => v.trim() !== ""))
+									.map((values) => values.map(csvNumber)),
+								CSV_DELIMITER,
+							)
+						}
+					/>
 				}
 			/>
 			<div className="bg" style={{ flex: 1, flexDirection: "column" }}>

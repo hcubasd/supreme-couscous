@@ -1,14 +1,16 @@
 import type { ReactNode } from "react";
 
-// A table heading: the title and any action buttons (Importar/Exportar) share one
-// fg, so squeezeFg fits them together and the 1em gap scales with the font — same
-// contract as the controls panel.
+// A table heading: the title flanked by action buttons (Importar before, Exportar
+// after) all share one fg, so squeezeFg fits them together and the 1em gaps scale
+// with the font — same contract as the controls panel.
 export function TableHeading({
 	title,
-	actions,
+	before,
+	after,
 }: {
 	title: string;
-	actions?: ReactNode;
+	before?: ReactNode;
+	after?: ReactNode;
 }) {
 	return (
 		<div
@@ -24,8 +26,9 @@ export function TableHeading({
 					gap: "1em",
 				}}
 			>
+				{before}
 				<h3>{title}</h3>
-				{actions}
+				{after}
 			</div>
 		</div>
 	);

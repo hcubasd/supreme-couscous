@@ -46,11 +46,10 @@ type Strings = {
 	trailerLengthM: string;
 	spacingM: string;
 	composition: string;
-	cargoCount: string;
-	selectedCargo: string;
-	weightUsedKg: string;
-	lengthUsedM: string;
-	chargedWeightKg: string;
+	quantity: string;
+	cargos: string;
+	freightCost: string;
+	tollCost: string;
 	cost: string;
 	noComposition: string;
 	showingOptima: (shown: string, total: string) => string;
@@ -92,11 +91,10 @@ const STRINGS: Record<Locale, Strings> = {
 		trailerLengthM: "Comprimento da carreta (m)",
 		spacingM: "Espaço entre cargas (m)",
 		composition: "Composição",
-		cargoCount: "Quantidade de cargas",
-		selectedCargo: "Cargas selecionadas",
-		weightUsedKg: "Peso utilizado (kg)",
-		lengthUsedM: "Comprimento utilizado (m)",
-		chargedWeightKg: "Peso cobrado (kg)",
+		quantity: "Quantidade",
+		cargos: "Cargas",
+		freightCost: "Frete",
+		tollCost: "Pedágio",
 		cost: "Custo",
 		noComposition: "Nenhuma composição encontrada",
 		showingOptima: (shown, total) =>
@@ -142,11 +140,10 @@ const STRINGS: Record<Locale, Strings> = {
 		trailerLengthM: "Trailer length (m)",
 		spacingM: "Spacing between cargo (m)",
 		composition: "Composition",
-		cargoCount: "Cargo count",
-		selectedCargo: "Selected cargo",
-		weightUsedKg: "Weight used (kg)",
-		lengthUsedM: "Length used (m)",
-		chargedWeightKg: "Charged weight (kg)",
+		quantity: "Quantity",
+		cargos: "Cargo",
+		freightCost: "Freight",
+		tollCost: "Toll",
 		cost: "Cost",
 		noComposition: "No composition found",
 		showingOptima: (shown, total) =>

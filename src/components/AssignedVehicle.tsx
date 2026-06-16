@@ -48,7 +48,8 @@ export function AssignedVehicle({
 					</div>
 				))}
 			</div>
-			<TableCell>{fmt(trip.c)}</TableCell>
+			<TableCell>{fmtMoney(trip.freight)}</TableCell>
+			<TableCell>{fmtMoney(trip.toll)}</TableCell>
 			<TableCell>{fmtMoney(trip.r)}</TableCell>
 		</div>
 	);

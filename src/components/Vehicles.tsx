@@ -58,29 +58,29 @@ export function Vehicles({
 		<div className="bg" style={{ flex: 1, flexDirection: "column" }}>
 			<TableHeading
 				title={t.vehicles}
-				actions={
-					<>
-						<ImportButton
-							columns={CLASS_HEADERS.length + TRAILER_HEADERS.length}
-							onRows={(rows, decimal) =>
-								fleet.replace(
-									rowsToClasses(
-										rows.map((row) => row.map((c) => csvCellToInput(c, decimal))),
-									),
-								)
-							}
-						/>
-						<ExportButton
-							filename={t.vehiclesFile}
-							build={() =>
-								toCsv(
-									[...CLASS_HEADERS, ...TRAILER_HEADERS],
-									classesToRows(classes).map((row) => row.map(csvNumber)),
-									CSV_DELIMITER,
-								)
-							}
-						/>
-					</>
+				before={
+					<ImportButton
+						columns={CLASS_HEADERS.length + TRAILER_HEADERS.length}
+						onRows={(rows, decimal) =>
+							fleet.replace(
+								rowsToClasses(
+									rows.map((row) => row.map((c) => csvCellToInput(c, decimal))),
+								),
+							)
+						}
+					/>
+				}
+				after={
+					<ExportButton
+						filename={t.vehiclesFile}
+						build={() =>
+							toCsv(
+								[...CLASS_HEADERS, ...TRAILER_HEADERS],
+								classesToRows(classes).map((row) => row.map(csvNumber)),
+								CSV_DELIMITER,
+							)
+						}
+					/>
 				}
 			/>
 			<div className="bg" style={{ flex: 1, flexDirection: "column" }}>
