@@ -64,7 +64,7 @@ export function Assignment({
 				{/* Mirror AssignedVehicle's nesting (identity · flex:5 carreta group ·
 				    costs) so the Total's columns line up with the rows above. */}
 				{/* No "Total" label — just bold aggregators in the columns that sum. */}
-				<div className="bg" style={{ minHeight: "var(--row-height, 0px)" }}>
+				<div className="bg">
 					<TableCell> </TableCell>
 					<TableCell> </TableCell>
 					<div className="bg" style={{ flex: 5, minWidth: 0 }}>

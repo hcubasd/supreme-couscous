@@ -18,7 +18,7 @@ export function Carreta({
 	required?: boolean;
 }) {
 	return (
-		<div className="bg" style={{ minHeight: "var(--row-height, 0px)" }}>
+		<div className="bg">
 			<TableCell style={{ color: muted ? MUTED : undefined }}>{number}</TableCell>
 			<NumberCell
 				value={values[0]}

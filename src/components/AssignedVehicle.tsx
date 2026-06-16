@@ -38,7 +38,6 @@ export function AssignedVehicle({
 						// biome-ignore lint/suspicious/noArrayIndexKey: trailers are positional and stable for a given solve
 						key={bi}
 						className="bg"
-						style={{ minHeight: "var(--row-height, 0px)" }}
 					>
 						<TableCell>{bi + 1}</TableCell>
 						<TableCell>{trailer.cargos.length}</TableCell>

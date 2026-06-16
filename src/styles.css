@@ -4,13 +4,12 @@
 	--row-line-height: 1.4;
 }
 
-/* Buttons live inside an fg (the controls panel, the table headings), so they
-   inherit its squeezed font instead of their UA default — and they track it
-   live during squeezeFg's search, which writes the size on the fg, not --font-size.
-   The control-panel radios are in an fg too, so they inherit as well; param-row
-   inputs sit in bg divs and stay on --font-size (see the input rule below). */
+/* Buttons and the control-panel radios live inside an fg, so they inherit its
+   squeezed font instead of their UA default — and track it live during squeezeFg's
+   search, which writes the size on the fg, not --font-size. Param-row inputs sit in
+   bg divs (not fg) and stay on --font-size (see the input rule below). */
 button,
-#controls input {
+.fg input {
 	font: inherit;
 }
 

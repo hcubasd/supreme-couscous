@@ -10,10 +10,10 @@ import { recolor } from "../helpers/layout";
 import { CSV_DELIMITER, t } from "../helpers/locale";
 import { csvCellToInput, csvNumber } from "../helpers/number";
 import { ClearButton } from "./ClearButton";
+import { ControlBar } from "./ControlBar";
 import { ExportButton } from "./ExportButton";
 import { ImportButton } from "./ImportButton";
-import { TableHeading } from "./TableHeading";
-import { TableLabel } from "./primitives";
+import { Label, TableLabel } from "./primitives";
 import { Vehicle } from "./Vehicle";
 
 const CLASS_HEADERS = [
@@ -57,10 +57,10 @@ export function Vehicles({
 
 	return (
 		<div className="bg" style={{ flex: 1, flexDirection: "column" }}>
-			<TableHeading
-				title={t.vehicles}
-				actions={
-					<>
+			<Label>
+				<h3>{t.vehicles}</h3>
+			</Label>
+			<ControlBar>
 						<ImportButton
 							columns={CLASS_HEADERS.length + TRAILER_HEADERS.length}
 							onRows={(rows, decimal) =>
@@ -82,9 +82,7 @@ export function Vehicles({
 							}
 						/>
 						<ClearButton onClear={fleet.clear} />
-					</>
-				}
-			/>
+			</ControlBar>
 			<div className="bg" style={{ flex: 1, flexDirection: "column" }}>
 				{/* Mirror each Vehicle block's nesting (7 class cells + a flex:4 trailer
 				    group) so the 1px gaps line up at the same nesting depth. */}

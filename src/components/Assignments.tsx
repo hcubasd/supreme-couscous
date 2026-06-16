@@ -92,7 +92,7 @@ function AssignmentsBody({ solved }: { solved: Solved | null }) {
 		return (
 			<div
 				className="bg"
-				style={{ flexShrink: 0, minHeight: "var(--row-height, 0px)" }}
+				style={{ flexShrink: 0 }}
 			>
 				<TableCell>{message}</TableCell>
 			</div>
@@ -115,7 +115,7 @@ function AssignmentsBody({ solved }: { solved: Solved | null }) {
 			{result.compositionCount > result.compositions.length && (
 				<div
 					className="bg"
-					style={{ flexShrink: 0, minHeight: "var(--row-height, 0px)" }}
+					style={{ flexShrink: 0 }}
 				>
 					<TableCell>
 						{t.showingOptima(

@@ -89,14 +89,9 @@ export function TableCell({
 
 // A parameter (input) row. Rows hold their content height and overflow into the
 // scroll container — they must not shrink vertically when space gets tight.
-// Tagged so refit can measure one and propagate its height to the output rows.
 export function Parameter({ children }: { children: ReactNode }) {
 	return (
-		<div
-			className="bg"
-			data-param-row="true"
-			style={{ alignItems: "center", flexShrink: 0 }}
-		>
+		<div className="bg" style={{ alignItems: "center", flexShrink: 0 }}>
 			{children}
 		</div>
 	);
