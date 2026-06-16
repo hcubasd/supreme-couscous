@@ -13,12 +13,15 @@ button,
 	font: inherit;
 }
 
-/* Action buttons are circular icon glyphs: a square sized in em (scales with the
-   squeezed font) rounded to a circle, with the glyph centered. */
+/* Action buttons are circular color-fill dots: a square sized in em (scales with
+   the squeezed font) rounded to a circle. border-radius drops the native OS theme,
+   revealing the UA's outset/inset bevel (the black/white border that flips when
+   pressed) — we keep that style and color, just thin it to 1px. */
 button {
 	width: 2em;
 	height: 2em;
 	padding: 0;
+	border-width: 1px;
 	border-radius: 50%;
 	display: inline-flex;
 	align-items: center;
