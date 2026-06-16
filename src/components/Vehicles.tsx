@@ -9,6 +9,7 @@ import { type Rgb, toRgb } from "../helpers/color";
 import { recolor } from "../helpers/layout";
 import { CSV_DELIMITER, t } from "../helpers/locale";
 import { csvCellToInput, csvNumber } from "../helpers/number";
+import { ClearButton } from "./ClearButton";
 import { ExportButton } from "./ExportButton";
 import { ImportButton } from "./ImportButton";
 import { TableHeading } from "./TableHeading";
@@ -58,29 +59,30 @@ export function Vehicles({
 		<div className="bg" style={{ flex: 1, flexDirection: "column" }}>
 			<TableHeading
 				title={t.vehicles}
-				before={
-					<ImportButton
-						columns={CLASS_HEADERS.length + TRAILER_HEADERS.length}
-						onRows={(rows, decimal) =>
-							fleet.replace(
-								rowsToClasses(
-									rows.map((row) => row.map((c) => csvCellToInput(c, decimal))),
-								),
-							)
-						}
-					/>
-				}
-				after={
-					<ExportButton
-						filename={t.vehiclesFile}
-						build={() =>
-							toCsv(
-								[...CLASS_HEADERS, ...TRAILER_HEADERS],
-								classesToRows(classes).map((row) => row.map(csvNumber)),
-								CSV_DELIMITER,
-							)
-						}
-					/>
+				actions={
+					<>
+						<ImportButton
+							columns={CLASS_HEADERS.length + TRAILER_HEADERS.length}
+							onRows={(rows, decimal) =>
+								fleet.replace(
+									rowsToClasses(
+										rows.map((row) => row.map((c) => csvCellToInput(c, decimal))),
+									),
+								)
+							}
+						/>
+						<ExportButton
+							filename={t.vehiclesFile}
+							build={() =>
+								toCsv(
+									[...CLASS_HEADERS, ...TRAILER_HEADERS],
+									classesToRows(classes).map((row) => row.map(csvNumber)),
+									CSV_DELIMITER,
+								)
+							}
+						/>
+						<ClearButton onClear={fleet.clear} />
+					</>
 				}
 			/>
 			<div className="bg" style={{ flex: 1, flexDirection: "column" }}>

@@ -99,7 +99,7 @@ const STRINGS: Record<Locale, Strings> = {
 		noComposition: "Nenhuma composição encontrada",
 		showingOptima: (shown, total) =>
 			`Mostrando ${shown} de ${total} composições ótimas`,
-		clearConfirm: "Deseja limpar todos os parâmetros?",
+		clearConfirm: "Deseja limpar?",
 		cargoFile: "cargas.csv",
 		vehiclesFile: "veiculos.csv",
 		resultsFile: "resultado.csv",
@@ -148,7 +148,7 @@ const STRINGS: Record<Locale, Strings> = {
 		noComposition: "No composition found",
 		showingOptima: (shown, total) =>
 			`Showing ${shown} of ${total} optimal compositions`,
-		clearConfirm: "Clear all parameters?",
+		clearConfirm: "Clear?",
 		cargoFile: "cargo.csv",
 		vehiclesFile: "vehicles.csv",
 		resultsFile: "results.csv",

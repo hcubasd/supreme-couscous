@@ -44,13 +44,6 @@ export default function App() {
 		return () => window.removeEventListener("resize", onResize);
 	}, []);
 
-	const handleClear = () => {
-		if (!window.confirm(t.clearConfirm)) return;
-		cargo.clear();
-		fleet.clear();
-		setSolved(null);
-	};
-
 	const handleSolve = () => {
 		// Native validation without a <form> (this is a SPA — nothing is submitted):
 		// a "started but half-filled" row leaves a required input empty, so the first
@@ -95,7 +88,7 @@ export default function App() {
 					objective={objective}
 					setObjective={setObjective}
 					onSolve={handleSolve}
-					onClear={handleClear}
+					onClear={() => setSolved(null)}
 					solved={solved}
 				/>
 			</div>

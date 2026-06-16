@@ -1,11 +1,13 @@
 import type { ReactNode } from "react";
 import { t } from "../helpers/locale";
 import type { Objective } from "../helpers/optimizer";
+import { ClearButton } from "./ClearButton";
 
-// The objective radios and the action buttons. Everything sits in one fg so
-// squeezeFg fits the whole panel together and the 1em gaps scale with the font;
-// --controls-margin (set by refit) vertically centers it against the results h3.
-// `actions` holds result-dependent buttons (e.g. Exportar) shown after Limpar.
+// The objective radios and the action buttons, all in one fg so squeezeFg fits the
+// whole panel together and the 1em gaps scale with the font; --controls-margin
+// (set by refit) vertically centers it against the results h3. Buttons sit to the
+// right of the radios in the same order as the other panels: Calcular (≙ Import),
+// then `actions` (Exportar), then Limpar.
 export function Controls({
 	objective,
 	setObjective,
@@ -60,10 +62,8 @@ export function Controls({
 				<button id="solve-button" type="button" onClick={onSolve}>
 					{t.calculate}
 				</button>
-				<button id="clear-button" type="button" onClick={onClear}>
-					{t.clear}
-				</button>
 				{actions}
+				<ClearButton onClear={onClear} />
 			</div>
 		</div>
 	);

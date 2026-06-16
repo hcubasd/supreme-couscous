@@ -30,6 +30,7 @@ export function Parameters({
 					rows={cargo.rows}
 					setCell={cargo.setCell}
 					onImport={cargo.replace}
+					onClear={cargo.clear}
 					palette={cargoPalette}
 				/>
 				<Vehicles fleet={fleet} palette={vehiclePalette} />

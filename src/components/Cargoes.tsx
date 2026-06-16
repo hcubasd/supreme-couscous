@@ -6,6 +6,7 @@ import { CSV_DELIMITER, t } from "../helpers/locale";
 import { csvCellToInput, csvNumber } from "../helpers/number";
 import type { Row } from "../helpers/rows";
 import { Cargo } from "./Cargo";
+import { ClearButton } from "./ClearButton";
 import { ExportButton } from "./ExportButton";
 import { ImportButton } from "./ImportButton";
 import { TableHeading } from "./TableHeading";
@@ -18,11 +19,13 @@ export function Cargoes({
 	rows,
 	setCell,
 	onImport,
+	onClear,
 	palette,
 }: {
 	rows: Row[];
 	setCell: (id: string, field: number, value: string) => void;
 	onImport: (rows: string[][]) => void;
+	onClear: () => void;
 	palette: Rgb[];
 }) {
 	// Recolor whenever the set of rows changes — added, removed, or replaced by an
@@ -41,30 +44,31 @@ export function Cargoes({
 		<div className="bg" style={{ flex: 1, flexDirection: "column" }}>
 			<TableHeading
 				title={t.cargo}
-				before={
-					<ImportButton
-						columns={2}
-						onRows={(imported, decimal) =>
-							onImport(
-								imported.map((row) => row.map((c) => csvCellToInput(c, decimal))),
-							)
-						}
-					/>
-				}
-				after={
-					<ExportButton
-						filename={t.cargoFile}
-						build={() =>
-							toCsv(
-								CARGO_HEADER,
-								rows
-									.map((row) => row.values)
-									.filter((values) => values.some((v) => v.trim() !== ""))
-									.map((values) => values.map(csvNumber)),
-								CSV_DELIMITER,
-							)
-						}
-					/>
+				actions={
+					<>
+						<ImportButton
+							columns={2}
+							onRows={(imported, decimal) =>
+								onImport(
+									imported.map((row) => row.map((c) => csvCellToInput(c, decimal))),
+								)
+							}
+						/>
+						<ExportButton
+							filename={t.cargoFile}
+							build={() =>
+								toCsv(
+									CARGO_HEADER,
+									rows
+										.map((row) => row.values)
+										.filter((values) => values.some((v) => v.trim() !== ""))
+										.map((values) => values.map(csvNumber)),
+									CSV_DELIMITER,
+								)
+							}
+						/>
+						<ClearButton onClear={onClear} />
+					</>
 				}
 			/>
 			<div className="bg" style={{ flex: 1, flexDirection: "column" }}>
