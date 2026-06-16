@@ -2,6 +2,31 @@ import { fmt, fmtLen, fmtMoney } from "../helpers/number";
 import type { Trip } from "../helpers/optimizer";
 import { TableCell } from "./primitives";
 
+// One cargo in a trailer's cargo set: a bg cell holding a color-filled div (the
+// cargo's palette color) that overtakes the cell, with the id in plain black. The
+// 1px flex gaps between cells keep adjacent fills apart.
+function CargoCell({ id, color }: { id: number; color: string }) {
+	return (
+		<div className="bg" style={{ flex: 1, minWidth: 0 }}>
+			<div
+				className="cell"
+				style={{
+					flex: 1,
+					minWidth: 0,
+					background: color,
+					color: "black",
+					display: "flex",
+					alignItems: "center",
+					justifyContent: "center",
+					overflow: "hidden",
+				}}
+			>
+				{id}
+			</div>
+		</div>
+	);
+}
+
 // One trip rendered as a rig "line": a bg row whose identity and cost cells
 // (Ordem, Classe, Peso cobrado, Custo) stand as single cells the full height of
 // the rig's carretas, while the middle column stacks one row per carreta (its
@@ -41,16 +66,15 @@ export function AssignedVehicle({
 					>
 						<TableCell>{bi + 1}</TableCell>
 						<TableCell>{trailer.cargos.length}</TableCell>
-						{/* The cargo set is an inner row of one cell per cargo (crop, no
-						    squeeze) rather than a comma-joined string. */}
+						{/* The cargo set: one color-filled cell per cargo (its palette
+						    color as the fill, id in black) rather than a comma-joined
+						    string. */}
 						<div
 							className="bg"
 							style={{ flex: 1, minWidth: 0, overflow: "hidden" }}
 						>
 							{trailer.cargos.map((i) => (
-								<TableCell key={i} style={{ color: cargoColors[i] }}>
-									{i + 1}
-								</TableCell>
+								<CargoCell key={i} id={i + 1} color={cargoColors[i]} />
 							))}
 						</div>
 						<TableCell>{fmt(trailer.w)}</TableCell>
