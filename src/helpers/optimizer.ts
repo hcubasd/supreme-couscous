@@ -30,8 +30,6 @@ export type Vehicle = {
 	carretas: Carreta[]; // ≥1 trailers — the bins of the 2-D packing
 };
 
-export type Objective = "cost" | "vehicles";
-
 // The validation failures the optimizer can report. The UI maps these keys to
 // localized text — the optimizer stays free of UI strings.
 export type InvalidKey = "needCargoAndVehicle" | "needCarreta" | "nonNegative";
@@ -316,12 +314,12 @@ function buildTrips(items: Item[], vehicles: Vehicle[]): TripCandidate[][] {
 // An incoming edge into a DP state: the trip taken plus the state it came from.
 type Edge = Trip & { prev: string };
 
-// The DP cost is lexicographic: the chosen objective is primary, the other metric
-// breaks ties. For "cost" that's (R$, trip count); for "vehicles" it's (trip
-// count, R$). Both components are additive over trips, so they compose along a
-// path like an ordinary shortest-path cost. The tiebreaker never overrides the
-// primary; it only orders solutions that already tie on it.
-type Cost = [primary: number, secondary: number];
+// The DP cost is lexicographic: total R$ is primary, trip count breaks ties — the
+// cheapest operation, and among the cheapest, the one using the fewest vehicles.
+// Both components are additive over trips, so they compose along a path like an
+// ordinary shortest-path cost. The tiebreaker never overrides the primary; it only
+// orders solutions that already tie on cost.
+type Cost = [cost: number, trips: number];
 
 const lexLess = (a: Cost, b: Cost): boolean =>
 	a[0] !== b[0] ? a[0] < b[0] : a[1] < b[1];
@@ -332,11 +330,7 @@ const lexEqual = (a: Cost, b: Cost): boolean =>
 // Shortest-path DP over states `position | fleet-usage`. Each edge consumes a
 // feasible trip; every predecessor edge achieving a state's best cost is kept, so
 // all optimal partitions can be reconstructed — not just one.
-export function solve(
-	items: Item[],
-	vehicles: Vehicle[],
-	objective: Objective,
-): SolveResult {
+export function solve(items: Item[], vehicles: Vehicle[]): SolveResult {
 	const analysis = analyzeProblem(items, vehicles);
 	if (!analysis.valid) {
 		return {
@@ -374,11 +368,10 @@ export function solve(
 				nextUsage[vehicleIndex] += 1;
 
 				const nextKey = `${trip.end + 1}|${nextUsage.join(",")}`;
-				const [primInc, secInc]: Cost =
-					objective === "vehicles" ? [1, trip.reais] : [trip.reais, 1];
+				// Cost primary, one trip added to the count as the tiebreaker.
 				const candidate: Cost = [
-					currentCost[0] + primInc,
-					currentCost[1] + secInc,
+					currentCost[0] + trip.reais,
+					currentCost[1] + 1,
 				];
 				const existing = best.get(nextKey);
 

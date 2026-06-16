@@ -29,7 +29,6 @@ type Strings = {
 	exportBtn: string;
 	calculate: string;
 	clear: string;
-	minimizePrompt: string;
 	order: string;
 	weightKg: string;
 	lengthM: string;
@@ -73,7 +72,6 @@ const STRINGS: Record<Locale, Strings> = {
 		exportBtn: "Exportar",
 		calculate: "Calcular",
 		clear: "Limpar",
-		minimizePrompt: "O que deseja minimizar? (veículos/custo)",
 		order: "Ordem",
 		weightKg: "Peso (kg)",
 		lengthM: "Comprimento (m)",
@@ -121,7 +119,6 @@ const STRINGS: Record<Locale, Strings> = {
 		exportBtn: "Export",
 		calculate: "Calculate",
 		clear: "Clear",
-		minimizePrompt: "What would you like to minimize? (vehicles/cost)",
 		order: "Order",
 		weightKg: "Weight (kg)",
 		lengthM: "Length (m)",

@@ -1,5 +1,4 @@
 import { t } from "../helpers/locale";
-import type { Objective } from "../helpers/optimizer";
 import { buildResultsCsv } from "../helpers/results";
 import { Assignments, type Solved } from "./Assignments";
 import { Controls } from "./Controls";
@@ -14,7 +13,7 @@ export function Results({
 	onClear,
 	solved,
 }: {
-	onSolve: (objective: Objective) => void;
+	onSolve: () => void;
 	onClear: () => void;
 	solved: Solved | null;
 }) {

@@ -9,7 +9,7 @@ import { DUMMY_FLEET, useGrowingFleet } from "./helpers/fleet";
 import { recolor, refit } from "./helpers/layout";
 import { LOCALE, t } from "./helpers/locale";
 import { toItems, toVehicles } from "./helpers/mapping";
-import { type Objective, solve } from "./helpers/optimizer";
+import { solve } from "./helpers/optimizer";
 import { useGrowingRows } from "./helpers/rows";
 
 // App is the scaffolding: it holds the shared state (the cargo and fleet tables,
@@ -43,7 +43,7 @@ export default function App() {
 		return () => window.removeEventListener("resize", onResize);
 	}, []);
 
-	const handleSolve = (objective: Objective) => {
+	const handleSolve = () => {
 		// Native validation without a <form> (this is a SPA — nothing is submitted):
 		// a "started but half-filled" row leaves a required input empty, so the first
 		// :invalid input gets the browser's own warning bubble and we stop.
@@ -59,7 +59,7 @@ export default function App() {
 		const colors = vehicles.map((_, i) => toRgb(vehiclePalette[i]));
 		const cargoColors = items.map((_, i) => toRgb(cargoPalette[i]));
 		setSolved({
-			result: solve(items, vehicles, objective),
+			result: solve(items, vehicles),
 			vehicles,
 			colors,
 			cargoColors,
