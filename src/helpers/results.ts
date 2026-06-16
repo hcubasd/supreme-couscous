@@ -5,7 +5,8 @@
 // sum isn't double-counted. Each composition is closed by a Total row.
 
 import { toCsv } from "./csv";
-import { DECIMAL, t } from "./locale";
+import { CSV_DELIMITER, t } from "./locale";
+import { numberToCsv as num } from "./number";
 import type { SolveResult, Vehicle } from "./optimizer";
 
 const RESULTS_HEADER = [
@@ -21,16 +22,13 @@ const RESULTS_HEADER = [
 	t.cost,
 ];
 
-// Plain locale numeric string (locale decimal, no thousands group), rounded to
-// drop the float dust that gap sums accumulate.
-const num = (n: number): string =>
-	String(Math.round(n * 1000) / 1000).replace(".", DECIMAL);
-
 export function buildResultsCsv(
 	result: SolveResult,
 	vehicles: Vehicle[],
 ): string {
-	if (result.status !== "success") return toCsv(RESULTS_HEADER, []);
+	if (result.status !== "success") {
+		return toCsv(RESULTS_HEADER, [], CSV_DELIMITER);
+	}
 
 	const rows: string[][] = [];
 	result.compositions.forEach((composition, ci) => {
@@ -74,5 +72,5 @@ export function buildResultsCsv(
 		]);
 	});
 
-	return toCsv(RESULTS_HEADER, rows);
+	return toCsv(RESULTS_HEADER, rows, CSV_DELIMITER);
 }

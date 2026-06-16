@@ -1,7 +1,8 @@
 import { useLayoutEffect } from "react";
 import { toCsv } from "../helpers/csv";
 import { recolor } from "../helpers/layout";
-import { csvNumber, localizeDecimal, t } from "../helpers/locale";
+import { CSV_DELIMITER, t } from "../helpers/locale";
+import { csvCellToInput, csvNumber } from "../helpers/number";
 import type { Row } from "../helpers/rows";
 import { Cargo } from "./Cargo";
 import { ExportButton } from "./ExportButton";
@@ -41,8 +42,10 @@ export function Cargoes({
 					<>
 						<ImportButton
 							columns={2}
-							onRows={(imported) =>
-								onImport(imported.map((row) => row.map(localizeDecimal)))
+							onRows={(imported, decimal) =>
+								onImport(
+									imported.map((row) => row.map((c) => csvCellToInput(c, decimal))),
+								)
 							}
 						/>
 						<ExportButton
@@ -54,6 +57,7 @@ export function Cargoes({
 										.map((row) => row.values)
 										.filter((values) => values.some((v) => v.trim() !== ""))
 										.map((values) => values.map(csvNumber)),
+									CSV_DELIMITER,
 								)
 							}
 						/>

@@ -1,5 +1,5 @@
 import type { FleetController } from "../helpers/fleet";
-import type { Rgb } from "../helpers/format";
+import type { Rgb } from "../helpers/color";
 import { t } from "../helpers/locale";
 import type { RowController } from "../helpers/rows";
 import { Cargoes } from "./Cargoes";

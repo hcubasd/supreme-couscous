@@ -3,7 +3,7 @@
 // blanks are skipped.
 
 import type { ClassRow } from "./fleet";
-import { parseNumber } from "./format";
+import { parseNumber } from "./number";
 import type { Item, Vehicle } from "./optimizer";
 import type { Row } from "./rows";
 

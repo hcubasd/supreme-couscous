@@ -1,4 +1,4 @@
-import { localizeDecimal } from "../helpers/locale";
+import { localizeDecimal } from "../helpers/number";
 import { MUTED, NumberCell, Parameter, TableCell } from "./primitives";
 
 export const DUMMY_CARGO: string[][] = [

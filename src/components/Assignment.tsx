@@ -1,4 +1,4 @@
-import { fmt, fmtLen, fmtMoney } from "../helpers/format";
+import { fmt, fmtLen, fmtMoney } from "../helpers/number";
 import type { Trip, Vehicle } from "../helpers/optimizer";
 import { AssignedVehicle } from "./AssignedVehicle";
 import { BOLD, TableCell } from "./primitives";

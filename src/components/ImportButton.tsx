@@ -4,13 +4,14 @@ import { t } from "../helpers/locale";
 
 // A file picker dressed as a plain button: the visible button proxies a click to
 // a hidden file input, reads the chosen CSV, validates it against the expected
-// column count, and either hands the rows up or alerts on a malformed file.
+// column count, and either hands the rows (with the file's decimal char) up or
+// alerts on a malformed file. The error wording is localized here, where t lives.
 export function ImportButton({
 	columns,
 	onRows,
 }: {
 	columns: number;
-	onRows: (rows: string[][]) => void;
+	onRows: (rows: string[][], decimal: string) => void;
 }) {
 	const inputRef = useRef<HTMLInputElement>(null);
 
@@ -28,8 +29,19 @@ export function ImportButton({
 					const file = e.target.files?.[0];
 					if (file) {
 						const result = importRows(await file.text(), columns);
-						if (result.ok) onRows(result.rows);
-						else window.alert(result.error);
+						if (result.ok) {
+							onRows(result.rows, result.decimal);
+						} else {
+							window.alert(
+								result.error.kind === "empty"
+									? t.importEmpty
+									: t.importColumns(
+											result.error.line,
+											result.error.expected,
+											result.error.got,
+										),
+							);
+						}
 					}
 					// Reset so picking the same file again still fires onChange.
 					e.target.value = "";

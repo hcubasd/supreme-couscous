@@ -5,9 +5,10 @@ import {
 	type FleetController,
 	rowsToClasses,
 } from "../helpers/fleet";
-import { type Rgb, toRgb } from "../helpers/format";
+import { type Rgb, toRgb } from "../helpers/color";
 import { recolor } from "../helpers/layout";
-import { csvNumber, localizeDecimal, t } from "../helpers/locale";
+import { CSV_DELIMITER, t } from "../helpers/locale";
+import { csvCellToInput, csvNumber } from "../helpers/number";
 import { ExportButton } from "./ExportButton";
 import { ImportButton } from "./ImportButton";
 import { TableHeading } from "./TableHeading";
@@ -61,9 +62,11 @@ export function Vehicles({
 					<>
 						<ImportButton
 							columns={CLASS_HEADERS.length + TRAILER_HEADERS.length}
-							onRows={(rows) =>
+							onRows={(rows, decimal) =>
 								fleet.replace(
-									rowsToClasses(rows.map((row) => row.map(localizeDecimal))),
+									rowsToClasses(
+										rows.map((row) => row.map((c) => csvCellToInput(c, decimal))),
+									),
 								)
 							}
 						/>
@@ -73,6 +76,7 @@ export function Vehicles({
 								toCsv(
 									[...CLASS_HEADERS, ...TRAILER_HEADERS],
 									classesToRows(classes).map((row) => row.map(csvNumber)),
+									CSV_DELIMITER,
 								)
 							}
 						/>

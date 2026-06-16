@@ -14,25 +14,10 @@ const detected =
 	typeof navigator !== "undefined" ? navigator.language.toLowerCase() : "en";
 export const LOCALE: Locale = detected.startsWith("pt-br") ? "pt-BR" : "en-US";
 
-// The locale's decimal character (for the input/seed display) and the CSV export
+// The locale's decimal character (number.ts formats with it) and the CSV export
 // delimiter (the comma-decimal locale must delimit with a semicolon).
 export const DECIMAL = LOCALE === "pt-BR" ? "," : ".";
 export const CSV_DELIMITER = LOCALE === "pt-BR" ? ";" : ",";
-
-// Show a numeric string with the locale's decimal char (≤ one separator already,
-// guaranteed by the input filter). Non-numeric strings (names, blanks) pass through.
-export function localizeDecimal(value: string): string {
-	if (value === "" || !/^\d*[.,]?\d*$/.test(value)) return value;
-	return value.replace(/[.,]/, DECIMAL);
-}
-
-// A numeric cell, canonicalized for CSV export: parse it (locale-agnostic) and
-// re-emit with the locale's decimal char, no thousands grouping. Guarantees the
-// file matches its delimiter regardless of which separator the user typed.
-export function csvNumber(value: string): string {
-	if (value.trim() === "" || !/^\d*[.,]?\d*$/.test(value)) return value;
-	return String(parseFloat(value.replace(/,/g, "."))).replace(".", DECIMAL);
-}
 
 type Strings = {
 	appTitle: string;
@@ -73,6 +58,8 @@ type Strings = {
 	cargoFile: string;
 	vehiclesFile: string;
 	resultsFile: string;
+	importEmpty: string;
+	importColumns: (line: number, expected: number, got: number) => string;
 	errors: Record<InvalidKey, string>;
 };
 
@@ -118,6 +105,9 @@ const STRINGS: Record<Locale, Strings> = {
 		cargoFile: "cargas.csv",
 		vehiclesFile: "veiculos.csv",
 		resultsFile: "resultado.csv",
+		importEmpty: "O arquivo está vazio.",
+		importColumns: (line, expected, got) =>
+			`Esperadas ${expected} colunas por linha, mas a linha ${line} tem ${got}.`,
 		errors: {
 			needCargoAndVehicle:
 				"Informe ao menos uma carga e uma classe de veículo.",
@@ -165,6 +155,9 @@ const STRINGS: Record<Locale, Strings> = {
 		cargoFile: "cargo.csv",
 		vehiclesFile: "vehicles.csv",
 		resultsFile: "results.csv",
+		importEmpty: "The file is empty.",
+		importColumns: (line, expected, got) =>
+			`Expected ${expected} columns per row, but line ${line} has ${got}.`,
 		errors: {
 			needCargoAndVehicle: "Enter at least one cargo and one vehicle class.",
 			needCarreta: "Each vehicle class needs at least one trailer.",

@@ -1,4 +1,4 @@
-import { fmt, fmtLen, fmtMoney } from "../helpers/format";
+import { fmt, fmtLen, fmtMoney } from "../helpers/number";
 import type { Trip } from "../helpers/optimizer";
 import { TableCell } from "./primitives";
 

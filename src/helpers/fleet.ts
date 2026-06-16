@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { localizeDecimal } from "./locale";
+import { localizeDecimal } from "./number";
 
 // The fleet is a nested structure: a list of vehicle classes, each with its own
 // per-class fields and a variable list of trailers (carretas). The UI shows it

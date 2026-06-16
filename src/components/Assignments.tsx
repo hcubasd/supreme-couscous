@@ -1,5 +1,5 @@
 import { useLayoutEffect } from "react";
-import { fmt } from "../helpers/format";
+import { fmt } from "../helpers/number";
 import { recolor } from "../helpers/layout";
 import { t } from "../helpers/locale";
 import type { SolveResult, Vehicle } from "../helpers/optimizer";

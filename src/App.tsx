@@ -6,7 +6,7 @@ import { Label } from "./components/primitives";
 import { Parameters } from "./components/Parameters";
 import { Results } from "./components/Results";
 import { DUMMY_FLEET, useGrowingFleet } from "./helpers/fleet";
-import { toRgb } from "./helpers/format";
+import { toRgb } from "./helpers/color";
 import { recolor, refit } from "./helpers/layout";
 import { LOCALE, t } from "./helpers/locale";
 import { toItems, toVehicles } from "./helpers/mapping";
