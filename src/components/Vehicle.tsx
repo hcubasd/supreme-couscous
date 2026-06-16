@@ -25,7 +25,9 @@ export function Vehicle({
 		trailers.some((t) => t.values.some((v) => v.trim() !== ""));
 
 	return (
-		<div className="bg">
+		// flexShrink:0 so adding classes overflows into the scroll container instead
+		// of squishing the rows (the cargo rows get this from Parameter).
+		<div className="bg" style={{ flexShrink: 0 }}>
 			<div
 				className="bg"
 				style={{ flex: 1, minWidth: 0, justifyContent: "center", alignItems: "center" }}
