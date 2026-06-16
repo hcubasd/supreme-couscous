@@ -31,6 +31,8 @@ type Strings = {
 	clear: string;
 	minimizeCost: string;
 	minimizeVehicles: string;
+	minimizePrompt: string;
+	cancel: string;
 	order: string;
 	weightKg: string;
 	lengthM: string;
@@ -76,6 +78,8 @@ const STRINGS: Record<Locale, Strings> = {
 		clear: "Limpar",
 		minimizeCost: "Minimizar custo",
 		minimizeVehicles: "Minimizar veículos",
+		minimizePrompt: "O que deseja minimizar?",
+		cancel: "Cancelar",
 		order: "Ordem",
 		weightKg: "Peso (kg)",
 		lengthM: "Comprimento (m)",
@@ -125,6 +129,8 @@ const STRINGS: Record<Locale, Strings> = {
 		clear: "Clear",
 		minimizeCost: "Minimize cost",
 		minimizeVehicles: "Minimize vehicles",
+		minimizePrompt: "What would you like to minimize?",
+		cancel: "Cancel",
 		order: "Order",
 		weightKg: "Weight (kg)",
 		lengthM: "Length (m)",

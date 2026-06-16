@@ -19,14 +19,28 @@ button,
    pressed) — we keep that style and color, just thin it to 1px. */
 button {
 	width: 2em;
-	height: 2em;
+	height: 1em;
 	padding: 0;
 	border-width: 1px;
-	border-radius: 50%;
+	border-radius: .5em;
 	display: inline-flex;
 	align-items: center;
 	justify-content: center;
 	cursor: pointer;
+}
+
+/* The modal dialog isn't in the bg/fg squeeze tree (it's in the browser's top
+   layer), so it just borrows the squeezed --font-size. Its buttons are text, not
+   the color dots, so reset them from the pill sizing back to natural text size. */
+dialog {
+	font-size: var(--font-size);
+}
+
+dialog button {
+	width: auto;
+	height: auto;
+	border-radius: 0.25em;
+	padding: 0.25em 0.75em;
 }
 
 input {
