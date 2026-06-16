@@ -25,8 +25,14 @@ export function ExportButton({
 	};
 
 	return (
-		<button type="button" onClick={onClick} disabled={disabled}>
-			{t.exportBtn}
+		<button
+			type="button"
+			onClick={onClick}
+			disabled={disabled}
+			title={t.exportBtn}
+			aria-label={t.exportBtn}
+		>
+			▲
 		</button>
 	);
 }

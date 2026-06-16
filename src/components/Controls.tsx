@@ -42,8 +42,13 @@ export function Controls({
 				/>
 				{t.minimizeVehicles}
 			</label>
-			<button type="button" onClick={onSolve}>
-				{t.calculate}
+			<button
+				type="button"
+				onClick={onSolve}
+				title={t.calculate}
+				aria-label={t.calculate}
+			>
+				▼
 			</button>
 			{actions}
 			<ClearButton onClear={onClear} />

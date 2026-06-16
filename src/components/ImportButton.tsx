@@ -17,8 +17,13 @@ export function ImportButton({
 
 	return (
 		<>
-			<button type="button" onClick={() => inputRef.current?.click()}>
-				{t.importBtn}
+			<button
+				type="button"
+				onClick={() => inputRef.current?.click()}
+				title={t.importBtn}
+				aria-label={t.importBtn}
+			>
+				▼
 			</button>
 			<input
 				ref={inputRef}

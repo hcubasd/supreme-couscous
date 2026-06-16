@@ -13,6 +13,19 @@ button,
 	font: inherit;
 }
 
+/* Action buttons are circular icon glyphs: a square sized in em (scales with the
+   squeezed font) rounded to a circle, with the glyph centered. */
+button {
+	width: 2em;
+	height: 2em;
+	padding: 0;
+	border-radius: 50%;
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	cursor: pointer;
+}
+
 input {
 	font-size: var(--font-size);
 	box-sizing: border-box;

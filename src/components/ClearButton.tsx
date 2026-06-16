@@ -8,8 +8,10 @@ export function ClearButton({ onClear }: { onClear: () => void }) {
 			onClick={() => {
 				if (window.confirm(t.clearConfirm)) onClear();
 			}}
+			title={t.clear}
+			aria-label={t.clear}
 		>
-			{t.clear}
+			{"◼︎"}
 		</button>
 	);
 }
