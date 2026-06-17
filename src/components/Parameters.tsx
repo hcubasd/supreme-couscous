@@ -25,7 +25,7 @@ export function Parameters({
 			<Label>
 				<h2>{t.parameters}</h2>
 			</Label>
-			<div className="bg" style={{ flex: 1, flexDirection: "column" }}>
+			<div className="bg" style={{ flex: 1, flexDirection: "row" }}>
 				<Cargoes
 					rows={cargo.rows}
 					setCell={cargo.setCell}

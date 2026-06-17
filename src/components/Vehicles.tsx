@@ -57,11 +57,8 @@ export function Vehicles({
 	}, [structureKey]);
 
 	return (
-		<div className="bg" style={{ flex: 1, flexDirection: "column" }}>
-			<Label>
-				<h3>{t.vehicles}</h3>
-			</Label>
-			<div className="bg" style={{ flex: 1, flexDirection: "column" }}>
+		<div className="bg" style={{ flex: 11, flexDirection: "column" }}>
+			<div className="bg" style={{ flexDirection: "row" }}>
 				<ControlBar>
 					<ImportButton
 						columns={CLASS_HEADERS.length + TRAILER_HEADERS.length}
@@ -85,39 +82,42 @@ export function Vehicles({
 					/>
 					<ClearButton onClear={fleet.clear} confirm={t.clearVehiclesConfirm} />
 				</ControlBar>
-				<div className="bg" style={{ flex: 1, flexDirection: "column" }}>
-					{/* Mirror each Vehicle block's nesting (7 class cells + a flex:4
+				<Label style={{ flex: 1 }}>
+					<h3>{t.vehicles}</h3>
+				</Label>
+			</div>
+			<div className="bg" style={{ flex: 1, flexDirection: "column" }}>
+				{/* Mirror each Vehicle block's nesting (7 class cells + a flex:4
 					    trailer group) so the 1px gaps line up at the same nesting depth. */}
-					<div className="bg">
-						{CLASS_HEADERS.map((header) => (
+				<div className="bg">
+					{CLASS_HEADERS.map((header) => (
+						<TableLabel key={header}>
+							<b>{header}</b>
+						</TableLabel>
+					))}
+					<div className="bg" style={{ flex: 4, minWidth: 0 }}>
+						{TRAILER_HEADERS.map((header) => (
 							<TableLabel key={header}>
 								<b>{header}</b>
 							</TableLabel>
 						))}
-						<div className="bg" style={{ flex: 4, minWidth: 0 }}>
-							{TRAILER_HEADERS.map((header) => (
-								<TableLabel key={header}>
-									<b>{header}</b>
-								</TableLabel>
-							))}
-						</div>
 					</div>
-					<div
-						className="bg"
-						style={{ flex: 1, flexDirection: "column", overflowY: "auto" }}
-					>
-						{classes.map((klass, i) => (
-							<Vehicle
-								key={klass.id}
-								klass={klass}
-								color={toRgb(palette[i])}
-								onClassCell={(field, value) => setClassCell(klass.id, field, value)}
-								onTrailerCell={(trailerId, field, value) =>
-									setTrailerCell(klass.id, trailerId, field, value)
-								}
-							/>
-						))}
-					</div>
+				</div>
+				<div
+					className="bg"
+					style={{ flex: 1, flexDirection: "column", overflowY: "auto" }}
+				>
+					{classes.map((klass, i) => (
+						<Vehicle
+							key={klass.id}
+							klass={klass}
+							color={toRgb(palette[i])}
+							onClassCell={(field, value) => setClassCell(klass.id, field, value)}
+							onTrailerCell={(trailerId, field, value) =>
+								setTrailerCell(klass.id, trailerId, field, value)
+							}
+						/>
+					))}
 				</div>
 			</div>
 		</div>

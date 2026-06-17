@@ -42,11 +42,8 @@ export function Cargoes({
 	}, [rowKey]);
 
 	return (
-		<div className="bg" style={{ flex: 1, flexDirection: "column" }}>
-			<Label>
-				<h3>{t.cargo}</h3>
-			</Label>
-			<div className="bg" style={{ flex: 1, flexDirection: "column" }}>
+		<div className="bg" style={{ flex: 3, flexDirection: "column" }}>
+			<div className="bg" style={{ flexDirection: "row" }}>
 				<ControlBar>
 					<ImportButton
 						columns={2}
@@ -71,33 +68,37 @@ export function Cargoes({
 					/>
 					<ClearButton onClear={onClear} confirm={t.clearCargoConfirm} />
 				</ControlBar>
-				<div className="bg" style={{ flex: 1, flexDirection: "column" }}>
-					<div className="bg">
-						<TableLabel>
-							<b>{t.order}</b>
-						</TableLabel>
-						<TableLabel>
-							<b>{t.weightKg}</b>
-						</TableLabel>
-						<TableLabel>
-							<b>{t.lengthM}</b>
-						</TableLabel>
-					</div>
-					<div
-						className="bg"
-						style={{ flex: 1, flexDirection: "column", overflowY: "auto" }}
-					>
-						{rows.map((row, i) => (
-							<Cargo
-								key={row.id}
-								order={i + 1}
-								values={row.values}
-								onChange={(field, value) => setCell(row.id, field, value)}
-								muted={i === rows.length - 1}
-								color={toRgb(palette[i])}
-							/>
-						))}
-					</div>
+
+				<Label style={{ flex: 1 }}>
+					<h3>{t.cargo}</h3>
+				</Label>
+			</div>
+			<div className="bg" style={{ flex: 1, flexDirection: "column" }}>
+				<div className="bg">
+					<TableLabel>
+						<b>{t.order}</b>
+					</TableLabel>
+					<TableLabel>
+						<b>{t.weightKg}</b>
+					</TableLabel>
+					<TableLabel>
+						<b>{t.lengthM}</b>
+					</TableLabel>
+				</div>
+				<div
+					className="bg"
+					style={{ flex: 1, flexDirection: "column", overflowY: "auto" }}
+				>
+					{rows.map((row, i) => (
+						<Cargo
+							key={row.id}
+							order={i + 1}
+							values={row.values}
+							onChange={(field, value) => setCell(row.id, field, value)}
+							muted={i === rows.length - 1}
+							color={toRgb(palette[i])}
+						/>
+					))}
 				</div>
 			</div>
 		</div>

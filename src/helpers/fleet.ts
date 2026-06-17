@@ -65,14 +65,14 @@ type StoredClass = { values: string[]; trailers: { values: string[] }[] };
 // use the pt-BR comma decimal (the canonical form the inputs and parseNumber use).
 export const DUMMY_FLEET: StoredClass[] = [
 	{
-		values: ["Classe A", "10", "45000", "2000", "0,45", "9", "134,4"],
-		trailers: [{ values: ["15000", "5", "0,2"] }],
+		values: ["Quarto eixo", "10", "40000", "11704", "0,3344", "9", "134,4"],
+		trailers: [{ values: ["40000", "13,5", "0,6"] }],
 	},
 	{
-		values: ["Classe B", "2", "70000", "3000", "0,38", "7", "134,4"],
+		values: ["Rodotrem", "10", "49000", "14850", "0,33", "7", "134,4"],
 		trailers: [
-			{ values: ["18000", "7", "0,5"] },
-			{ values: ["16000", "7", "0,5"] },
+			{ values: ["49000", "7,1", "0,6"] },
+			{ values: ["49000", "7,1", "0,6"] },
 		],
 	},
 ].map((c) => ({

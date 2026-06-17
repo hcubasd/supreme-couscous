@@ -18,7 +18,7 @@ button,
    revealing the UA's outset/inset bevel (the black/white border that flips when
    pressed) — we keep that style and color, just thin it to 1px. */
 button {
-	width: 2em;
+	width: 1em;
 	height: 1em;
 	padding: 0;
 	border-width: 1px;

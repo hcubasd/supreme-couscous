@@ -19,10 +19,7 @@ export function Results({
 }) {
 	return (
 		<div className="bg" style={{ flex: 1, flexDirection: "column" }}>
-			<Label>
-				<h2>{t.results}</h2>
-			</Label>
-			<div className="bg" style={{ flex: 1, flexDirection: "column" }}>
+			<div className="bg" style={{ flexDirection: "row" }}>
 				<Controls
 					onSolve={onSolve}
 					onClear={onClear}
@@ -38,8 +35,11 @@ export function Results({
 						/>
 					}
 				/>
-				<Assignments solved={solved} />
+				<Label style={{ flex: 1 }}>
+					<h2>{t.results}</h2>
+				</Label>
 			</div>
+			<Assignments solved={solved} />
 		</div>
 	);
 }

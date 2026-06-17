@@ -22,6 +22,6 @@ export function recolor(el: HTMLDivElement = getRoot()): void {
 export function refit(el: HTMLDivElement = getRoot()): void {
 	document.documentElement.style.setProperty(
 		"--font-size",
-		`${squeezeFg(el, 0.8)}px`,
+		`${squeezeFg(el)}px`,
 	);
 }

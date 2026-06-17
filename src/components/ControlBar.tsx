@@ -16,7 +16,7 @@ export function ControlBar({ children }: { children: ReactNode }) {
 						alignItems: "center",
 						whiteSpace: "nowrap",
 						gap: "1em",
-						marginBlock: "1em",
+						marginInline: "1em",
 					}}
 				>
 					{children}
