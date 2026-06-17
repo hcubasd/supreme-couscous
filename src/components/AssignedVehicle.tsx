@@ -7,7 +7,7 @@ import { TableCell } from "./primitives";
 // 1px flex gaps between cells keep adjacent fills apart.
 function CargoCell({ id, color }: { id: number; color: string }) {
 	return (
-		<div className="bg" style={{ flex: 1, minWidth: 0 }}>
+		<div className="bg" style={{ flex: 1, minWidth: 0, padding: "1px" }}>
 			<div
 				className="cell"
 				style={{
