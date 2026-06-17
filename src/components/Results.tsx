@@ -5,9 +5,9 @@ import { Controls } from "./Controls";
 import { ExportButton } from "./ExportButton";
 import { Label } from "./primitives";
 
-// The whole output half of the app: the section title over the controls panel and
-// the results table. Solve/clear orchestration lives in App; this just wires the
-// callbacks and the last solve through.
+// The whole output half of the app: the title over everything else, where
+// everything else is the controls panel over the results table. Solve/clear
+// orchestration lives in App; this just wires the callbacks and the last solve.
 export function Results({
 	onSolve,
 	onClear,
@@ -19,10 +19,10 @@ export function Results({
 }) {
 	return (
 		<div className="bg" style={{ flex: 1, flexDirection: "column" }}>
-			<div className="bg">
-				<Label style={{ flex: 1 }}>
-					<h2>{t.results}</h2>
-				</Label>
+			<Label>
+				<h2>{t.results}</h2>
+			</Label>
+			<div className="bg" style={{ flex: 1, flexDirection: "column" }}>
 				<Controls
 					onSolve={onSolve}
 					onClear={onClear}
@@ -38,8 +38,8 @@ export function Results({
 						/>
 					}
 				/>
+				<Assignments solved={solved} />
 			</div>
-			<Assignments solved={solved} />
 		</div>
 	);
 }

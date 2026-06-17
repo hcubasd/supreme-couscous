@@ -14,8 +14,8 @@ import { Label, TableLabel } from "./primitives";
 
 const CARGO_HEADER = [t.weightKg, t.lengthM];
 
-// The cargo parameter table: a header row (title + controls, 50/50) over the
-// column labels and the editable rows.
+// The cargo parameter table: the title over everything else, where everything else
+// is the controls over the column labels and the editable rows.
 export function Cargoes({
 	rows,
 	setCell,
@@ -43,10 +43,10 @@ export function Cargoes({
 
 	return (
 		<div className="bg" style={{ flex: 1, flexDirection: "column" }}>
-			<div className="bg">
-				<Label style={{ flex: 1 }}>
-					<h3>{t.cargo}</h3>
-				</Label>
+			<Label>
+				<h3>{t.cargo}</h3>
+			</Label>
+			<div className="bg" style={{ flex: 1, flexDirection: "column" }}>
 				<ControlBar>
 					<ImportButton
 						columns={2}
@@ -69,35 +69,35 @@ export function Cargoes({
 							)
 						}
 					/>
-					<ClearButton onClear={onClear} />
+					<ClearButton onClear={onClear} confirm={t.clearCargoConfirm} />
 				</ControlBar>
-			</div>
-			<div className="bg" style={{ flex: 1, flexDirection: "column" }}>
-				<div className="bg">
-					<TableLabel>
-						<b>{t.order}</b>
-					</TableLabel>
-					<TableLabel>
-						<b>{t.weightKg}</b>
-					</TableLabel>
-					<TableLabel>
-						<b>{t.lengthM}</b>
-					</TableLabel>
-				</div>
-				<div
-					className="bg"
-					style={{ flex: 1, flexDirection: "column", overflowY: "auto" }}
-				>
-					{rows.map((row, i) => (
-						<Cargo
-							key={row.id}
-							order={i + 1}
-							values={row.values}
-							onChange={(field, value) => setCell(row.id, field, value)}
-							muted={i === rows.length - 1}
-							color={toRgb(palette[i])}
-						/>
-					))}
+				<div className="bg" style={{ flex: 1, flexDirection: "column" }}>
+					<div className="bg">
+						<TableLabel>
+							<b>{t.order}</b>
+						</TableLabel>
+						<TableLabel>
+							<b>{t.weightKg}</b>
+						</TableLabel>
+						<TableLabel>
+							<b>{t.lengthM}</b>
+						</TableLabel>
+					</div>
+					<div
+						className="bg"
+						style={{ flex: 1, flexDirection: "column", overflowY: "auto" }}
+					>
+						{rows.map((row, i) => (
+							<Cargo
+								key={row.id}
+								order={i + 1}
+								values={row.values}
+								onChange={(field, value) => setCell(row.id, field, value)}
+								muted={i === rows.length - 1}
+								color={toRgb(palette[i])}
+							/>
+						))}
+					</div>
 				</div>
 			</div>
 		</div>

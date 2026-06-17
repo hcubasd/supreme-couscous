@@ -51,7 +51,10 @@ type Strings = {
 	cost: string;
 	noComposition: string;
 	showingOptima: (shown: string, total: string) => string;
-	clearConfirm: string;
+	calculateConfirm: string;
+	clearCargoConfirm: string;
+	clearVehiclesConfirm: string;
+	clearResultsConfirm: string;
 	cargoFile: string;
 	vehiclesFile: string;
 	resultsFile: string;
@@ -95,7 +98,10 @@ const STRINGS: Record<Locale, Strings> = {
 		noComposition: "Nenhuma composição encontrada",
 		showingOptima: (shown, total) =>
 			`Mostrando ${shown} de ${total} composições ótimas`,
-		clearConfirm: "Deseja limpar?",
+		calculateConfirm: "Executar a otimização?",
+		clearCargoConfirm: "Limpar todas as cargas?",
+		clearVehiclesConfirm: "Limpar todos os veículos?",
+		clearResultsConfirm: "Limpar os resultados?",
 		cargoFile: "cargas.csv",
 		vehiclesFile: "veiculos.csv",
 		resultsFile: "resultado.csv",
@@ -142,7 +148,10 @@ const STRINGS: Record<Locale, Strings> = {
 		noComposition: "No composition found",
 		showingOptima: (shown, total) =>
 			`Showing ${shown} of ${total} optimal compositions`,
-		clearConfirm: "Clear?",
+		calculateConfirm: "Run the optimization?",
+		clearCargoConfirm: "Clear all cargo?",
+		clearVehiclesConfirm: "Clear all vehicles?",
+		clearResultsConfirm: "Clear the results?",
 		cargoFile: "cargo.csv",
 		vehiclesFile: "vehicles.csv",
 		resultsFile: "results.csv",

@@ -32,10 +32,10 @@ const TRAILER_HEADERS = [
 	t.spacingM,
 ];
 
-// The vehicle (fleet) parameter table: a header row (title + controls, 50/50) over
-// the 11 column labels and one editable class block per vehicle class. The trailer
-// columns (Carreta + three physical fields) are grouped under each class's tall
-// per-class cells.
+// The vehicle (fleet) parameter table: the title over everything else, where
+// everything else is the controls over the 11 column labels and one editable class
+// block per vehicle class. The trailer columns (Carreta + three physical fields)
+// are grouped under each class's tall per-class cells.
 export function Vehicles({
 	fleet,
 	palette,
@@ -58,10 +58,10 @@ export function Vehicles({
 
 	return (
 		<div className="bg" style={{ flex: 1, flexDirection: "column" }}>
-			<div className="bg">
-				<Label style={{ flex: 1 }}>
-					<h3>{t.vehicles}</h3>
-				</Label>
+			<Label>
+				<h3>{t.vehicles}</h3>
+			</Label>
+			<div className="bg" style={{ flex: 1, flexDirection: "column" }}>
 				<ControlBar>
 					<ImportButton
 						columns={CLASS_HEADERS.length + TRAILER_HEADERS.length}
@@ -83,41 +83,41 @@ export function Vehicles({
 							)
 						}
 					/>
-					<ClearButton onClear={fleet.clear} />
+					<ClearButton onClear={fleet.clear} confirm={t.clearVehiclesConfirm} />
 				</ControlBar>
-			</div>
-			<div className="bg" style={{ flex: 1, flexDirection: "column" }}>
-				{/* Mirror each Vehicle block's nesting (7 class cells + a flex:4 trailer
-				    group) so the 1px gaps line up at the same nesting depth. */}
-				<div className="bg">
-					{CLASS_HEADERS.map((header) => (
-						<TableLabel key={header}>
-							<b>{header}</b>
-						</TableLabel>
-					))}
-					<div className="bg" style={{ flex: 4, minWidth: 0 }}>
-						{TRAILER_HEADERS.map((header) => (
+				<div className="bg" style={{ flex: 1, flexDirection: "column" }}>
+					{/* Mirror each Vehicle block's nesting (7 class cells + a flex:4
+					    trailer group) so the 1px gaps line up at the same nesting depth. */}
+					<div className="bg">
+						{CLASS_HEADERS.map((header) => (
 							<TableLabel key={header}>
 								<b>{header}</b>
 							</TableLabel>
 						))}
+						<div className="bg" style={{ flex: 4, minWidth: 0 }}>
+							{TRAILER_HEADERS.map((header) => (
+								<TableLabel key={header}>
+									<b>{header}</b>
+								</TableLabel>
+							))}
+						</div>
 					</div>
-				</div>
-				<div
-					className="bg"
-					style={{ flex: 1, flexDirection: "column", overflowY: "auto" }}
-				>
-					{classes.map((klass, i) => (
-						<Vehicle
-							key={klass.id}
-							klass={klass}
-							color={toRgb(palette[i])}
-							onClassCell={(field, value) => setClassCell(klass.id, field, value)}
-							onTrailerCell={(trailerId, field, value) =>
-								setTrailerCell(klass.id, trailerId, field, value)
-							}
-						/>
-					))}
+					<div
+						className="bg"
+						style={{ flex: 1, flexDirection: "column", overflowY: "auto" }}
+					>
+						{classes.map((klass, i) => (
+							<Vehicle
+								key={klass.id}
+								klass={klass}
+								color={toRgb(palette[i])}
+								onClassCell={(field, value) => setClassCell(klass.id, field, value)}
+								onTrailerCell={(trailerId, field, value) =>
+									setTrailerCell(klass.id, trailerId, field, value)
+								}
+							/>
+						))}
+					</div>
 				</div>
 			</div>
 		</div>

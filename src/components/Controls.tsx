@@ -6,7 +6,8 @@ import { ControlBar } from "./ControlBar";
 
 // The Resultados controls: three color dots (Calcular / Exportar / Limpar), like
 // the other panels. Calcular is a single action — there's one objective (cheapest
-// operation, fewest vehicles to break ties), so there's nothing to choose.
+// operation, fewest vehicles to break ties), so there's nothing to choose — but it
+// confirms first, since solving is the app's one "expensive" trigger.
 export function Controls({
 	onSolve,
 	onClear,
@@ -20,13 +21,15 @@ export function Controls({
 		<ControlBar>
 			<button
 				type="button"
-				onClick={onSolve}
+				onClick={() => {
+					if (window.confirm(t.calculateConfirm)) onSolve();
+				}}
 				title={t.calculate}
 				aria-label={t.calculate}
 				style={{ background: ANSI.green }}
 			/>
 			{actions}
-			<ClearButton onClear={onClear} />
+			<ClearButton onClear={onClear} confirm={t.clearResultsConfirm} />
 		</ControlBar>
 	);
 }
