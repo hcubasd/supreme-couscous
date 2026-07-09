@@ -1,30 +1,27 @@
-import { useRef } from "react";
+import { useRef, type ReactNode } from "react";
 import { ANSI } from "../helpers/color";
 import { importRows } from "../helpers/csv";
 import { t } from "../helpers/locale";
+import { ClickH1 } from "./PanelMenu";
 
-// A file picker dressed as a plain button: the visible button proxies a click to
-// a hidden file input, reads the chosen CSV, validates it against the expected
-// column count, and either hands the rows (with the file's decimal char) up or
-// alerts on a malformed file. The error wording is localized here, where t lives.
 export function ImportButton({
 	columns,
 	onRows,
+	onDone,
+	children,
 }: {
 	columns: number;
 	onRows: (rows: string[][], decimal: string) => void;
+	onDone?: () => void;
+	children?: ReactNode;
 }) {
 	const inputRef = useRef<HTMLInputElement>(null);
 
 	return (
 		<>
-			<button
-				type="button"
-				onClick={() => inputRef.current?.click()}
-				title={t.importBtn}
-				aria-label={t.importBtn}
-				style={{ background: ANSI.green }}
-			/>
+			<ClickH1 color={ANSI.green} onClick={() => inputRef.current?.click()}>
+				{children ?? t.importBtn}
+			</ClickH1>
 			<input
 				ref={inputRef}
 				type="file"
@@ -36,6 +33,7 @@ export function ImportButton({
 						const result = importRows(await file.text(), columns);
 						if (result.ok) {
 							onRows(result.rows, result.decimal);
+							onDone?.();
 						} else {
 							window.alert(
 								result.error.kind === "empty"
@@ -48,7 +46,6 @@ export function ImportButton({
 							);
 						}
 					}
-					// Reset so picking the same file again still fires onChange.
 					e.target.value = "";
 				}}
 			/>

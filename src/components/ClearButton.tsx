@@ -1,24 +1,30 @@
+import type { ReactNode } from "react";
 import { ANSI } from "../helpers/color";
 import { t } from "../helpers/locale";
+import { ClickH1 } from "./PanelMenu";
 
-// Clears one panel's data (cargo, fleet, or results) after confirming with the
-// panel-specific message.
 export function ClearButton({
 	onClear,
 	confirm,
+	onDone,
+	children,
 }: {
 	onClear: () => void;
 	confirm: string;
+	onDone?: () => void;
+	children?: ReactNode;
 }) {
 	return (
-		<button
-			type="button"
+		<ClickH1
+			color={ANSI.red}
 			onClick={() => {
-				if (window.confirm(confirm)) onClear();
+				if (window.confirm(confirm)) {
+					onClear();
+					onDone?.();
+				}
 			}}
-			title={t.clear}
-			aria-label={t.clear}
-			style={{ background: ANSI.red }}
-		/>
+		>
+			{children ?? t.clear}
+		</ClickH1>
 	);
 }

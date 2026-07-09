@@ -23,6 +23,7 @@ type Strings = {
 	appTitle: string;
 	parameters: string;
 	results: string;
+	compositions: string;
 	cargo: string;
 	vehicles: string;
 	importBtn: string;
@@ -60,6 +61,7 @@ type Strings = {
 	resultsFile: string;
 	importEmpty: string;
 	importColumns: (line: number, expected: number, got: number) => string;
+	back: string;
 	errors: Record<InvalidKey, string>;
 };
 
@@ -69,6 +71,7 @@ const STRINGS: Record<Locale, Strings> = {
 			"Alocador exato de frota para operações de transporte de cargas pesadas",
 		parameters: "Parâmetros",
 		results: "Resultados",
+		compositions: "Composições",
 		cargo: "Cargas",
 		vehicles: "Veículos",
 		importBtn: "Importar",
@@ -108,6 +111,7 @@ const STRINGS: Record<Locale, Strings> = {
 		importEmpty: "O arquivo está vazio.",
 		importColumns: (line, expected, got) =>
 			`Esperadas ${expected} colunas por linha, mas a linha ${line} tem ${got}.`,
+		back: "Voltar",
 		errors: {
 			needCargoAndVehicle:
 				"Informe ao menos uma carga e uma classe de veículo.",
@@ -119,6 +123,7 @@ const STRINGS: Record<Locale, Strings> = {
 		appTitle: "Exact fleet allocator for heavy-cargo transport operations",
 		parameters: "Parameters",
 		results: "Results",
+		compositions: "Compositions",
 		cargo: "Cargoes",
 		vehicles: "Vehicles",
 		importBtn: "Import",
@@ -158,6 +163,7 @@ const STRINGS: Record<Locale, Strings> = {
 		importEmpty: "The file is empty.",
 		importColumns: (line, expected, got) =>
 			`Expected ${expected} columns per row, but line ${line} has ${got}.`,
+		back: "Back",
 		errors: {
 			needCargoAndVehicle: "Enter at least one cargo and one vehicle class.",
 			needCarreta: "Each vehicle class needs at least one trailer.",
