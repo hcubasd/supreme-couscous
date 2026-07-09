@@ -23,16 +23,18 @@ export const MUTED = `rgb(${mutedGray.r}, ${mutedGray.g}, ${mutedGray.b})`;
 export function Label({
 	children,
 	style,
+	fgStyle,
 }: {
 	children: ReactNode;
 	style?: CSSProperties;
+	fgStyle?: CSSProperties;
 }) {
 	return (
 		<div
 			className="bg"
 			style={{ justifyContent: "center", alignItems: "center", ...style }}
 		>
-			<div className="fg" style={{ whiteSpace: "nowrap" }}>
+			<div className="fg" style={{ whiteSpace: "nowrap", ...fgStyle }}>
 				{children}
 			</div>
 		</div>

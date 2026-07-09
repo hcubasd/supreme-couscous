@@ -30,9 +30,7 @@ export function Vehicles({
 
 	return (
 		<div className="bg" style={{ flex: 11, flexDirection: "column" }}>
-			<Label>
-				<h1>{t.vehicles}</h1>
-			</Label>
+			<Label fgStyle={{ paddingBlock: "1em" }}>{t.vehicles}</Label>
 			<div className="bg" style={{ flex: 1, flexDirection: "column" }}>
 				<div className="bg">
 					{CLASS_HEADERS.map((header) => (

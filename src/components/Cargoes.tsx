@@ -22,9 +22,7 @@ export function Cargoes({
 
 	return (
 		<div className="bg" style={{ flex: 3, flexDirection: "column" }}>
-			<Label>
-				<h1>{t.cargo}</h1>
-			</Label>
+			<Label fgStyle={{ paddingBlock: "1em" }}>{t.cargo}</Label>
 			<div className="bg" style={{ flex: 1, flexDirection: "column" }}>
 				<div className="bg">
 					<TableLabel><b>{t.order}</b></TableLabel>

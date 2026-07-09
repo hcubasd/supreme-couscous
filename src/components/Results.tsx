@@ -5,9 +5,7 @@ import { Label } from "./primitives";
 export function Results({ solved }: { solved: Solved | null }) {
 	return (
 		<div className="bg" style={{ flex: 1, flexDirection: "column" }}>
-			<Label>
-				<h1>{t.compositions}</h1>
-			</Label>
+			<Label fgStyle={{ paddingBlock: "1em" }}>{t.compositions}</Label>
 			<Assignments solved={solved} />
 		</div>
 	);
