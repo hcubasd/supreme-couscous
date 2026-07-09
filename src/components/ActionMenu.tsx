@@ -8,12 +8,12 @@ import { buildResultsCsv } from "../helpers/results";
 import type { RowController } from "../helpers/rows";
 import type { Solved } from "./Assignments";
 
-const CARGO_HEADER = [t.weightKg, t.lengthM];
+const CARGO_HEADER = [t.weightKg, t.dimensionM];
 const CLASS_HEADERS = [
 	t.klass, t.availableQty, t.maxWeightKg,
 	t.minCharge, t.freightPerKg, t.axles, t.tollPerAxle,
 ];
-const TRAILER_HEADERS = [t.trailer, t.trailerCapacityKg, t.trailerLengthM, t.spacingM];
+const TRAILER_HEADERS = [t.trailer, t.trailerCapacityKg, t.trailerDimensionM, t.spacingM];
 const VEHICLE_COLS = CLASS_HEADERS.length + TRAILER_HEADERS.length;
 
 function download(filename: string, csv: string) {

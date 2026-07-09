@@ -45,7 +45,7 @@ export function Assignment({
 			{/* Third layer: the composition number spans the whole block via flex
 			    stretch — no separate header row. The body (flex 9) holds the trips and
 			    the Total and mirrors the column header's nesting so columns line up. */}
-			<TableCell style={BOLD}>{index + 1}</TableCell>
+			<TableCell>{index + 1}</TableCell>
 			<div
 				className="bg"
 				style={{ flex: 10, flexDirection: "column", minWidth: 0 }}

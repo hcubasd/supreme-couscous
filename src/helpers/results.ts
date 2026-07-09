@@ -17,7 +17,7 @@ const RESULTS_HEADER = [
 	t.quantity,
 	t.cargos,
 	t.weightKg,
-	t.lengthM,
+	t.dimensionM,
 	t.freightCost,
 	t.tollCost,
 	t.cost,

@@ -25,9 +25,9 @@ export function Cargoes({
 			<Label fgStyle={{ paddingBlock: "1em" }}>{t.cargo}</Label>
 			<div className="bg" style={{ flex: 1, flexDirection: "column" }}>
 				<div className="bg">
-					<TableLabel><b>{t.order}</b></TableLabel>
-					<TableLabel><b>{t.weightKg}</b></TableLabel>
-					<TableLabel><b>{t.lengthM}</b></TableLabel>
+					<TableLabel>{t.order}</TableLabel>
+					<TableLabel>{t.weightKg}</TableLabel>
+					<TableLabel>{t.dimensionM}</TableLabel>
 				</div>
 				<div
 					className="bg"

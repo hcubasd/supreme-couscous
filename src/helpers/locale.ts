@@ -32,7 +32,7 @@ type Strings = {
 	clear: string;
 	order: string;
 	weightKg: string;
-	lengthM: string;
+	dimensionM: string;
 	klass: string;
 	availableQty: string;
 	maxWeightKg: string;
@@ -42,7 +42,7 @@ type Strings = {
 	tollPerAxle: string;
 	trailer: string;
 	trailerCapacityKg: string;
-	trailerLengthM: string;
+	trailerDimensionM: string;
 	spacingM: string;
 	composition: string;
 	quantity: string;
@@ -80,7 +80,7 @@ const STRINGS: Record<Locale, Strings> = {
 		clear: "Limpar",
 		order: "Ordem",
 		weightKg: "Peso (kg)",
-		lengthM: "Comprimento (m)",
+		dimensionM: "Dimensão (m)",
 		klass: "Classe",
 		availableQty: "Quantidade disponível",
 		maxWeightKg: "Peso máximo (kg)",
@@ -90,8 +90,8 @@ const STRINGS: Record<Locale, Strings> = {
 		tollPerAxle: "Pedágio (por eixo)",
 		trailer: "Carreta",
 		trailerCapacityKg: "Capacidade da carreta (kg)",
-		trailerLengthM: "Comprimento da carreta (m)",
-		spacingM: "Espaço entre cargas (m)",
+		trailerDimensionM: "Dimensão da carreta (m)",
+		spacingM: "Espaço das cargas (m)",
 		composition: "Composição",
 		quantity: "Quantidade",
 		cargos: "Cargas",
@@ -132,7 +132,7 @@ const STRINGS: Record<Locale, Strings> = {
 		clear: "Clear",
 		order: "Order",
 		weightKg: "Weight (kg)",
-		lengthM: "Length (m)",
+		dimensionM: "Dimension (m)",
 		klass: "Class",
 		availableQty: "Available quantity",
 		maxWeightKg: "Max weight (kg)",
@@ -142,8 +142,8 @@ const STRINGS: Record<Locale, Strings> = {
 		tollPerAxle: "Toll (per axle)",
 		trailer: "Trailer",
 		trailerCapacityKg: "Trailer capacity (kg)",
-		trailerLengthM: "Trailer length (m)",
-		spacingM: "Spacing between cargo (m)",
+		trailerDimensionM: "Trailer dimension (m)",
+		spacingM: "Cargo spacing (m)",
 		composition: "Composition",
 		quantity: "Quantity",
 		cargos: "Cargoes",

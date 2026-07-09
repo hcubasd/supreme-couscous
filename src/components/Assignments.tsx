@@ -25,7 +25,7 @@ const CARRETA_HEADERS = [
 	t.quantity,
 	t.cargos,
 	t.weightKg,
-	t.lengthM,
+	t.dimensionM,
 ];
 const RIGHT_HEADERS = [t.freightCost, t.tollCost, t.cost];
 
@@ -44,26 +44,18 @@ export function Assignments({ solved }: { solved: Solved | null }) {
 	return (
 		<div className="bg" style={{ flex: 1, flexDirection: "column" }}>
 			<div className="bg">
-				<TableLabel>
-					<b>{t.composition}</b>
-				</TableLabel>
+				<TableLabel>{t.composition}</TableLabel>
 				<div className="bg" style={{ flex: 10, minWidth: 0 }}>
 					{LEFT_HEADERS.map((header) => (
-						<TableLabel key={header}>
-							<b>{header}</b>
-						</TableLabel>
+						<TableLabel key={header}>{header}</TableLabel>
 					))}
 					<div className="bg" style={{ flex: 5, minWidth: 0 }}>
 						{CARRETA_HEADERS.map((header) => (
-							<TableLabel key={header}>
-								<b>{header}</b>
-							</TableLabel>
+							<TableLabel key={header}>{header}</TableLabel>
 						))}
 					</div>
 					{RIGHT_HEADERS.map((header) => (
-						<TableLabel key={header}>
-							<b>{header}</b>
-						</TableLabel>
+						<TableLabel key={header}>{header}</TableLabel>
 					))}
 				</div>
 			</div>

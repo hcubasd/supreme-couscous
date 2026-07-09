@@ -10,7 +10,7 @@ const CLASS_HEADERS = [
 	t.klass, t.availableQty, t.maxWeightKg,
 	t.minCharge, t.freightPerKg, t.axles, t.tollPerAxle,
 ];
-const TRAILER_HEADERS = [t.trailer, t.trailerCapacityKg, t.trailerLengthM, t.spacingM];
+const TRAILER_HEADERS = [t.trailer, t.trailerCapacityKg, t.trailerDimensionM, t.spacingM];
 
 export function Vehicles({
 	fleet,
@@ -34,11 +34,11 @@ export function Vehicles({
 			<div className="bg" style={{ flex: 1, flexDirection: "column" }}>
 				<div className="bg">
 					{CLASS_HEADERS.map((header) => (
-						<TableLabel key={header}><b>{header}</b></TableLabel>
+						<TableLabel key={header}>{header}</TableLabel>
 					))}
 					<div className="bg" style={{ flex: 4, minWidth: 0 }}>
 						{TRAILER_HEADERS.map((header) => (
-							<TableLabel key={header}><b>{header}</b></TableLabel>
+							<TableLabel key={header}>{header}</TableLabel>
 						))}
 					</div>
 				</div>
