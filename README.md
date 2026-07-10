@@ -168,6 +168,8 @@ infeasibility, fleet binding, all-optima tie enumeration, and larger fixtures.
 - The UI **auto-detects the locale** (`pt-BR` vs `en-US`) from the browser and
   sets `<html lang>` accordingly. Numbers display in the locale's convention;
   parsing accepts either decimal separator, so the optimizer never depends on it.
+  A fixed bottom-right toggle overrides the detected locale (persisted to
+  `localStorage`) and reloads the page.
 - Monetary values are shown as **plain numbers, no currency symbol** — the
   column labels carry the meaning.
 - **CSV import auto-detects the delimiter** (`;` ⇒ comma decimal, `,` ⇒ dot
@@ -176,6 +178,15 @@ infeasibility, fleet binding, all-optima tie enumeration, and larger fixtures.
   vehicle CSV groups rows by class name (one row per trailer, class fields
   repeated). Cargo and fleet tables also persist to `localStorage`.
 
+## Interface
+
+Each panel (Cargoes, Vehicles, Compositions) has a header that shows either its
+title or its action buttons (Import/Export/Clear, or Calculate/Export/Clear),
+never both. A fixed bottom-left toggle switches every header between the two —
+hidden by default, so the app opens on a clean, title-only view. Both corner
+toggles (locale and menu) are fixed at an 11pt font size (Apple's HIG legibility
+floor), independent of whatever size the panels themselves are squeezed to.
+
 ## Project structure
 
 ```
@@ -183,18 +194,20 @@ src/
   App.tsx          scaffolding: shared state, solve/clear handlers, page skeleton
   index.tsx        entry point
   styles.css
-  components/      Parameters, Results; Cargoes/Cargo, Vehicles/Vehicle/Carreta,
-                   Controls/ControlBar, Assignments/Assignment/AssignedVehicle,
-                   Import/Export/ClearButton, primitives
+  components/      Cargoes/Cargo, Vehicles/Vehicle/Carreta,
+                   Results/Assignments/Assignment/AssignedVehicle,
+                   LocaleToggle, MenuToggle, primitives (PanelHeader,
+                   ActionLabel/ActionGroup, Label/TableLabel, Cell/TableCell, ...)
   helpers/
     optimizer.ts   the optimization engine (pure)
     fleet.ts       nested vehicle/trailer rows (growing, persisted) + CSV grouping
     rows.ts        growing cargo rows (one trailing empty row, persisted)
     mapping.ts     rows → optimizer domain types
-    csv.ts         pure CSV parse / serialize (no locale)
+    csv.ts         pure CSV parse / serialize (no locale) + downloadCsv
     number.ts      number ↔ string (locale display, locale-agnostic parse)
+    results.ts     SolveResult → CSV rows
     color.ts       palette generation + the ANSI button fills
-    locale.ts      pt-BR / en-US detection and strings
+    locale.ts      pt-BR / en-US detection, manual override, and strings
     layout.ts      recolor + squeeze hooks
 tests/
   optimizer.test.ts
@@ -204,8 +217,9 @@ The UI uses two companion libraries from the same author:
 [`miniature-waffle`](https://www.npmjs.com/package/miniature-waffle) for color
 generation and [`psychic-potato`](https://www.npmjs.com/package/psychic-potato)
 for the auto-fitting/coloring layout. Squeezing the foreground font to fit runs
-on mount and resize; coloring the background layers runs when rows are
-added/removed or results render.
+on mount and resize only; coloring the background layers runs whenever the
+`bg` tree's shape changes — rows added/removed, results rendered, or the menu
+toggle mounting/unmounting a panel's action buttons.
 
 ## Development
 
@@ -230,7 +244,7 @@ served under the `/supreme-couscous/` base path at
 
 ## Research
 
-The general model, its formulations and equivalences, the systematic literature
-review, and the planned empirical validation are documented in the accompanying
-paper: [`hcubasd/symmetrical-chainsaw`](https://github.com/hcubasd/symmetrical-chainsaw).
+The general model, its formulations and equivalences, the related-work grounding,
+and a case study run against real data from this app are documented in the
+accompanying paper: [`hcubasd/symmetrical-chainsaw`](https://github.com/hcubasd/symmetrical-chainsaw).
 This repository is the implemented prototype referenced there.

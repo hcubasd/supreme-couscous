@@ -97,3 +97,15 @@ export function toCsv(
 	const line = (fields: string[]) => fields.map(esc).join(delimiter);
 	return [header, ...rows].map(line).join("\r\n");
 }
+
+// Trigger a browser download of CSV text. A leading BOM so Excel opens the file
+// as UTF-8 instead of guessing the system codepage.
+export function downloadCsv(filename: string, csv: string): void {
+	const blob = new Blob([`﻿${csv}`], { type: "text/csv;charset=utf-8" });
+	const url = URL.createObjectURL(blob);
+	const a = document.createElement("a");
+	a.href = url;
+	a.download = filename;
+	a.click();
+	URL.revokeObjectURL(url);
+}

@@ -23,18 +23,16 @@ export const MUTED = `rgb(${mutedGray.r}, ${mutedGray.g}, ${mutedGray.b})`;
 export function Label({
 	children,
 	style,
-	fgStyle,
 }: {
 	children: ReactNode;
 	style?: CSSProperties;
-	fgStyle?: CSSProperties;
 }) {
 	return (
 		<div
 			className="bg"
 			style={{ justifyContent: "center", alignItems: "center", ...style }}
 		>
-			<div className="fg" style={{ whiteSpace: "nowrap", ...fgStyle }}>
+			<div className="fg" style={{ whiteSpace: "nowrap" }}>
 				{children}
 			</div>
 		</div>
@@ -51,6 +49,125 @@ export function TableLabel({
 	style?: CSSProperties;
 }) {
 	return <Label style={{ flex: 1, minWidth: 0, ...style }}>{children}</Label>;
+}
+
+// A single flex:1 slot for a PanelHeader — either the title or one action
+// word. The text is a .cell, not a .fg, and deliberately not part of
+// squeezeFg: PanelHeader swaps title and actions in and out of the DOM on the
+// menu toggle, and squeezeFg only ever runs at UI mount and on resize, never
+// on that toggle. A .fg that mounted fresh after a toggle would carry no
+// imperative font-size (squeezeFg sets that directly on the DOM node, which
+// React doesn't preserve across an unmount/remount) and would fall back to
+// its unsqueezed CSS default. Reading --font-size live, like every other
+// .cell, sidesteps that entirely. paddingBlock keeps every header — title or
+// buttons — the same height regardless of which is currently showing; the bg
+// wrapper crops instead of pushing the layout, same reasoning as Cell.
+function HeaderCell({
+	children,
+	flex = 1,
+	cellStyle,
+	onClick,
+}: {
+	children: ReactNode;
+	flex?: number;
+	cellStyle?: CSSProperties;
+	onClick?: () => void;
+}) {
+	return (
+		<div
+			className="bg"
+			style={{
+				flex,
+				minWidth: 0,
+				justifyContent: "center",
+				alignItems: "center",
+				overflow: "hidden",
+				cursor: onClick ? "pointer" : undefined,
+			}}
+			onClick={onClick}
+		>
+			<div className="cell" style={{ paddingBlock: "1em", ...cellStyle }}>
+				{children}
+			</div>
+		</div>
+	);
+}
+
+// A clickable colored word in a panel header (Import, Export, Clear, ...). A
+// HeaderCell with a click handler and color layered on; `flex` defaults to 1
+// (equal share); a solo action sitting directly on a PanelHeader row overrides
+// it to match that row's left/title/right ratio.
+export function ActionLabel({
+	children,
+	onClick,
+	color,
+	disabled,
+	flex = 1,
+}: {
+	children: ReactNode;
+	onClick: () => void;
+	color?: string;
+	disabled?: boolean;
+	flex?: number;
+}) {
+	return (
+		<HeaderCell
+			flex={flex}
+			onClick={disabled ? undefined : onClick}
+			cellStyle={{ userSelect: "none", color, opacity: disabled ? 0.4 : 1 }}
+		>
+			{children}
+		</HeaderCell>
+	);
+}
+
+// A row-level bg grouping 2+ header actions that share a side of a PanelHeader
+// (e.g. Import + Export). One depth level below the row itself, matching the
+// depth a table's own column-header row puts its TableLabels at — so colorBg
+// shades a button group the same as the column headers below it, instead of
+// the shallower, mismatched depth a bare row of actions would sit at. A solo
+// action (nothing to group) skips this and sits directly on the row instead.
+// `flex` (default 1) sets the group's own share of the row, matching the title
+// and the opposite slot's ratio; the two actions inside it stay 1:1 with each
+// other regardless — no gap/align override — plain .bg defaults (1px gap,
+// stretch) apply, same as every other bg.
+export function ActionGroup({
+	children,
+	flex = 1,
+}: {
+	children: ReactNode;
+	flex?: number;
+}) {
+	return (
+		<div className="bg" style={{ flex, minWidth: 0 }}>
+			{children}
+		</div>
+	);
+}
+
+// A panel's header row: either the title, or every action word grouped
+// together (an ActionGroup — Cargoes/Vehicles get Import+Export+Clear,
+// Compositions gets Calculate+Export+Clear), never both — the menu toggle
+// swaps one for the other rather than splitting the row between them. Plain
+// .bg defaults, same as every other row: whichever side is showing is the
+// row's only flex child, so its flex:1 naturally fills the full width with no
+// extra style needed.
+//
+// `showActions` is the global menu-toggle state.
+export function PanelHeader({
+	title,
+	actions,
+	showActions,
+}: {
+	title: ReactNode;
+	actions?: ReactNode;
+	showActions: boolean;
+}) {
+	return (
+		<div className="bg">
+			{showActions ? actions : <HeaderCell>{title}</HeaderCell>}
+		</div>
+	);
 }
 
 // A centered data cell: inherits --font-size and crops (the bg wrapper hides

@@ -1,9 +1,9 @@
-import { useEffect, useMemo, useRef, useState } from "react";
-import { ActionMenu } from "./components/ActionMenu";
+import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import type { Solved } from "./components/Assignments";
 import { DUMMY_CARGO } from "./components/Cargo";
 import { Cargoes } from "./components/Cargoes";
-import { FAB } from "./components/FAB";
+import { LocaleToggle } from "./components/LocaleToggle";
+import { MenuToggle } from "./components/MenuToggle";
 import { Results } from "./components/Results";
 import { Vehicles } from "./components/Vehicles";
 import { palette, randomVariation, toRgb } from "./helpers/color";
@@ -29,7 +29,11 @@ export default function App() {
 		[cargo.rows.length, cargoVariation],
 	);
 	const [solved, setSolved] = useState<Solved | null>(null);
-	const [menuOpen, setMenuOpen] = useState(false);
+	// Off by default: the action buttons in each header only exist in the DOM
+	// once this flips true, well after the mount-time squeezeFg pass — see
+	// ActionLabel and MenuToggle for why their text reads --font-size live
+	// instead of being measured as a .fg.
+	const [menusVisible, setMenusVisible] = useState(false);
 
 	useEffect(() => {
 		document.documentElement.lang = LOCALE;
@@ -40,13 +44,21 @@ export default function App() {
 	}, []);
 
 	useEffect(() => {
-		if (menuOpen) return;
 		const root = rootRef.current;
 		if (!root) return;
 		const onResize = () => refit(root);
 		window.addEventListener("resize", onResize);
 		return () => window.removeEventListener("resize", onResize);
-	}, [menuOpen]);
+	}, []);
+
+	// Toggling the menu mounts/unmounts every header's ActionGroup, which changes
+	// the bg tree's nesting depth — colorBg needs to run again against the new
+	// tree, same as Cargoes/Vehicles do when their own structure changes.
+	useLayoutEffect(() => {
+		const root = rootRef.current;
+		if (!root) return;
+		recolor(root);
+	}, [menusVisible]);
 
 	const handleSolve = () => {
 		const invalid =
@@ -70,25 +82,20 @@ export default function App() {
 			style={{ height: "100%", flexDirection: "column" }}
 		>
 			<div className="bg inputs-wrapper">
-				<Cargoes
-					rows={cargo.rows}
-					setCell={cargo.setCell}
-					palette={cargoPalette}
-				/>
-				<Vehicles fleet={fleet} palette={vehiclePalette} />
+				<Cargoes cargo={cargo} palette={cargoPalette} menusVisible={menusVisible} />
+				<Vehicles fleet={fleet} palette={vehiclePalette} menusVisible={menusVisible} />
 			</div>
-			<Results solved={solved} />
-			<FAB onClick={() => setMenuOpen((prev) => !prev)} />
-			{menuOpen && (
-				<ActionMenu
-					cargo={cargo}
-					fleet={fleet}
-					solved={solved}
-					onSolve={handleSolve}
-					onClearSolved={() => setSolved(null)}
-					onClose={() => setMenuOpen(false)}
-				/>
-			)}
+			<Results
+				solved={solved}
+				onSolve={handleSolve}
+				onClearSolved={() => setSolved(null)}
+				menusVisible={menusVisible}
+			/>
+			<LocaleToggle />
+			<MenuToggle
+				visible={menusVisible}
+				onToggle={() => setMenusVisible((v) => !v)}
+			/>
 		</div>
 	);
 }

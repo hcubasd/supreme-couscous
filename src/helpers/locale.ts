@@ -10,9 +10,39 @@ import type { InvalidKey } from "./optimizer";
 
 export type Locale = "pt-BR" | "en-US";
 
+const OVERRIDE_KEY = "supreme-couscous:locale-override";
+
+function readOverride(): Locale | null {
+	if (typeof localStorage === "undefined") return null;
+	const stored = localStorage.getItem(OVERRIDE_KEY);
+	return stored === "pt-BR" || stored === "en-US" ? stored : null;
+}
+
 const detected =
 	typeof navigator !== "undefined" ? navigator.language.toLowerCase() : "en";
-export const LOCALE: Locale = detected.startsWith("pt-br") ? "pt-BR" : "en-US";
+const autoDetected: Locale = detected.startsWith("pt-br") ? "pt-BR" : "en-US";
+
+export const LOCALE: Locale = readOverride() ?? autoDetected;
+
+// The label for the toggle always names the *other* locale — a language code
+// is deliberately not translated, so it reads regardless of which language
+// the operator currently can't understand.
+export const OTHER_LOCALE_LABEL: Record<Locale, string> = {
+	"pt-BR": "EN",
+	"en-US": "PT",
+};
+
+// Persist the other locale and reload. A full reload is deliberate: LOCALE,
+// t, DECIMAL, and CSV_DELIMITER are all derived once at module load, so
+// re-running that derivation from scratch is simpler and safer than
+// threading locale as reactive state through every component that imports
+// `t`.
+export function switchLocale(): void {
+	if (typeof localStorage === "undefined") return;
+	const other: Locale = LOCALE === "pt-BR" ? "en-US" : "pt-BR";
+	localStorage.setItem(OVERRIDE_KEY, other);
+	window.location.reload();
+}
 
 // The locale's decimal character (number.ts formats with it) and the CSV export
 // delimiter (the comma-decimal locale must delimit with a semicolon).
