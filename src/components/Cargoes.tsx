@@ -6,7 +6,7 @@ import { CSV_DELIMITER, t } from "../helpers/locale";
 import { csvCellToInput, csvNumber } from "../helpers/number";
 import type { RowController } from "../helpers/rows";
 import { Cargo } from "./Cargo";
-import { ActionGroup, ActionLabel, PanelHeader, TableLabel } from "./primitives";
+import { ActionLabel, PanelHeader, PanelMenu, TableLabel } from "./primitives";
 
 const CARGO_HEADER = [t.weightKg, t.dimensionM];
 
@@ -62,23 +62,19 @@ export function Cargoes({
 
 	return (
 		<div className="bg" style={{ flex: 3, flexDirection: "column" }}>
-			<PanelHeader
-				title={t.cargo}
-				showActions={menusVisible}
-				actions={
-					<ActionGroup>
-						<ActionLabel color={ANSI.green} onClick={() => fileInputRef.current?.click()}>
-							{t.importBtn}
-						</ActionLabel>
-						<ActionLabel color={ANSI.yellow} onClick={handleExport}>
-							{t.exportBtn}
-						</ActionLabel>
-						<ActionLabel color={ANSI.red} onClick={handleClear}>
-							{t.clear}
-						</ActionLabel>
-					</ActionGroup>
-				}
-			/>
+			<PanelHeader title={t.cargo}>
+				<PanelMenu visible={menusVisible}>
+					<ActionLabel color={ANSI.green} onClick={() => fileInputRef.current?.click()}>
+						{t.importBtn}
+					</ActionLabel>
+					<ActionLabel color={ANSI.yellow} onClick={handleExport}>
+						{t.exportBtn}
+					</ActionLabel>
+					<ActionLabel color={ANSI.red} onClick={handleClear}>
+						{t.clear}
+					</ActionLabel>
+				</PanelMenu>
+			</PanelHeader>
 			<div className="bg" style={{ flex: 1, flexDirection: "column" }}>
 				<div className="bg">
 					<TableLabel>{t.order}</TableLabel>

@@ -19,20 +19,25 @@ export const MUTED = `rgb(${mutedGray.r}, ${mutedGray.g}, ${mutedGray.b})`;
 
 // A centered chrome label: content sits in an fg so squeezeFg sizes it, nowrap
 // keeps it on one line. Stretches to its parent's height (flex default), so the
-// text centers vertically across however tall the row is.
+// text centers vertically across however tall the row is. `fgStyle` reaches the
+// inner fg node directly (`style` only reaches the outer bg) — used by
+// PanelHeader to match the paddingBlock on PanelMenu's HeaderCells, so the
+// title row and the menu row below it are the same height.
 export function Label({
 	children,
 	style,
+	fgStyle,
 }: {
 	children: ReactNode;
 	style?: CSSProperties;
+	fgStyle?: CSSProperties;
 }) {
 	return (
 		<div
 			className="bg"
 			style={{ justifyContent: "center", alignItems: "center", ...style }}
 		>
-			<div className="fg" style={{ whiteSpace: "nowrap" }}>
+			<div className="fg" style={{ whiteSpace: "nowrap", ...fgStyle }}>
 				{children}
 			</div>
 		</div>
@@ -51,17 +56,17 @@ export function TableLabel({
 	return <Label style={{ flex: 1, minWidth: 0, ...style }}>{children}</Label>;
 }
 
-// A single flex:1 slot for a PanelHeader — either the title or one action
-// word. The text is a .cell, not a .fg, and deliberately not part of
-// squeezeFg: PanelHeader swaps title and actions in and out of the DOM on the
-// menu toggle, and squeezeFg only ever runs at UI mount and on resize, never
-// on that toggle. A .fg that mounted fresh after a toggle would carry no
-// imperative font-size (squeezeFg sets that directly on the DOM node, which
-// React doesn't preserve across an unmount/remount) and would fall back to
-// its unsqueezed CSS default. Reading --font-size live, like every other
-// .cell, sidesteps that entirely. paddingBlock keeps every header — title or
-// buttons — the same height regardless of which is currently showing; the bg
-// wrapper crops instead of pushing the layout, same reasoning as Cell.
+// A single flex:1 slot for one PanelMenu action word. The text is a .cell,
+// not a .fg, and deliberately not part of squeezeFg: PanelMenu mounts and
+// unmounts its whole row on the menu toggle, and squeezeFg only ever runs at
+// UI mount and on resize, never on that toggle. A .fg that mounted fresh
+// after a toggle would carry no imperative font-size (squeezeFg sets that
+// directly on the DOM node, which React doesn't preserve across an
+// unmount/remount) and would fall back to its unsqueezed CSS default.
+// Reading --font-size live, like every other .cell, sidesteps that entirely.
+// paddingBlock matches the title row's own height so the menu doesn't jump
+// the layout when it appears; the bg wrapper crops instead of pushing the
+// layout, same reasoning as Cell.
 function HeaderCell({
 	children,
 	flex = 1,
@@ -93,10 +98,9 @@ function HeaderCell({
 	);
 }
 
-// A clickable colored word in a panel header (Import, Export, Clear, ...). A
+// A clickable colored word in a PanelMenu (Import, Export, Clear, ...). A
 // HeaderCell with a click handler and color layered on; `flex` defaults to 1
-// (equal share); a solo action sitting directly on a PanelHeader row overrides
-// it to match that row's left/title/right ratio.
+// (equal share).
 export function ActionLabel({
 	children,
 	onClick,
@@ -121,16 +125,14 @@ export function ActionLabel({
 	);
 }
 
-// A row-level bg grouping 2+ header actions that share a side of a PanelHeader
-// (e.g. Import + Export). One depth level below the row itself, matching the
+// A row-level bg grouping every action word in a PanelMenu (e.g.
+// Import+Export+Clear). One depth level below the row itself, matching the
 // depth a table's own column-header row puts its TableLabels at — so colorBg
-// shades a button group the same as the column headers below it, instead of
-// the shallower, mismatched depth a bare row of actions would sit at. A solo
-// action (nothing to group) skips this and sits directly on the row instead.
-// `flex` (default 1) sets the group's own share of the row, matching the title
-// and the opposite slot's ratio; the two actions inside it stay 1:1 with each
-// other regardless — no gap/align override — plain .bg defaults (1px gap,
-// stretch) apply, same as every other bg.
+// shades the button group the same as the column headers below it, instead of
+// the shallower, mismatched depth a bare row of actions would sit at. `flex`
+// (default 1) sets the group's own share of the row; the actions inside it
+// stay 1:1 with each other regardless — no gap/align override — plain .bg
+// defaults (1px gap, stretch) apply, same as every other bg.
 export function ActionGroup({
 	children,
 	flex = 1,
@@ -145,27 +147,70 @@ export function ActionGroup({
 	);
 }
 
-// A panel's header row: either the title, or every action word grouped
-// together (an ActionGroup — Cargoes/Vehicles get Import+Export+Clear,
-// Compositions gets Calculate+Export+Clear), never both — the menu toggle
-// swaps one for the other rather than splitting the row between them. Plain
-// .bg defaults, same as every other row: whichever side is showing is the
-// row's only flex child, so its flex:1 naturally fills the full width with no
-// extra style needed.
-//
-// `showActions` is the global menu-toggle state.
+// A panel's header row: always just the title, as a plain Label (.fg) —
+// unlike the menu, this row never mounts or unmounts, so it participates in
+// squeezeFg normally like any other static chrome. The paddingBlock matches
+// PanelMenu's HeaderCells so the title and the menu are the same height.
+// `position: relative` here (not on a wrapper of its own) establishes the
+// anchor its PanelMenu child overlays against — see PanelMenu.
 export function PanelHeader({
 	title,
-	actions,
-	showActions,
+	children,
 }: {
 	title: ReactNode;
-	actions?: ReactNode;
-	showActions: boolean;
+	children?: ReactNode;
 }) {
 	return (
-		<div className="bg">
-			{showActions ? actions : <HeaderCell>{title}</HeaderCell>}
+		<div style={{ position: "relative", minWidth: 0 }}>
+			<div className="bg">
+				<Label style={{ flex: 1, minWidth: 0 }} fgStyle={{ paddingBlock: "1em" }}>
+					{title}
+				</Label>
+			</div>
+			{children}
+		</div>
+	);
+}
+
+// A panel's toggleable action row (Import/Export/Clear, or
+// Calculate/Export/Clear), passed as a child of its PanelHeader. Always
+// mounted — `visible` only drives a transform/opacity transition, not
+// presence in the DOM — for two reasons: it lets the drop actually animate
+// (an unmounted element can't transition), and it keeps the bg tree's shape,
+// and therefore colorBg's depth-based grays, stable across the toggle instead
+// of needing a recolor pass timed to match a delayed unmount. Tucked to
+// translateY(-100%) (flush behind the header) and invisible/unclickable when
+// closed, dropped to translateY(0) — 1px below the header, matching the .bg
+// gap between ordinary flow siblings — when open. Positioned absolutely
+// against its PanelHeader's `position: relative` anchor, so open or closed it
+// overlays the rest of the panel rather than pushing it down. Its contents
+// stay HeaderCells (.cell, reading --font-size live) rather than Labels
+// (.fg): squeezeFg only measures on mount/resize, and while that's no longer
+// strictly required now that this is always mounted, there's no reason for
+// its buttons to enter the squeeze fit either.
+export function PanelMenu({
+	children,
+	visible,
+}: {
+	children: ReactNode;
+	visible: boolean;
+}) {
+	return (
+		<div
+			className="bg"
+			style={{
+				position: "absolute",
+				top: "calc(100% + 1px)",
+				left: 0,
+				right: 0,
+				zIndex: 10,
+				transform: visible ? "translateY(0)" : "translateY(-100%)",
+				opacity: visible ? 1 : 0,
+				pointerEvents: visible ? "auto" : "none",
+				transition: "transform 200ms ease, opacity 200ms ease",
+			}}
+		>
+			<ActionGroup>{children}</ActionGroup>
 		</div>
 	);
 }

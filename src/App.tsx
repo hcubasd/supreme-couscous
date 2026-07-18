@@ -1,4 +1,4 @@
-import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import type { Solved } from "./components/Assignments";
 import { DUMMY_CARGO } from "./components/Cargo";
 import { Cargoes } from "./components/Cargoes";
@@ -29,10 +29,9 @@ export default function App() {
 		[cargo.rows.length, cargoVariation],
 	);
 	const [solved, setSolved] = useState<Solved | null>(null);
-	// Off by default: the action buttons in each header only exist in the DOM
-	// once this flips true, well after the mount-time squeezeFg pass — see
-	// ActionLabel and MenuToggle for why their text reads --font-size live
-	// instead of being measured as a .fg.
+	// Off by default: each panel's menu is always mounted (see PanelMenu) and
+	// merely animates open/closed on this flag, so toggling it never touches
+	// the bg tree's shape or needs a recolor pass.
 	const [menusVisible, setMenusVisible] = useState(false);
 
 	useEffect(() => {
@@ -50,15 +49,6 @@ export default function App() {
 		window.addEventListener("resize", onResize);
 		return () => window.removeEventListener("resize", onResize);
 	}, []);
-
-	// Toggling the menu mounts/unmounts every header's ActionGroup, which changes
-	// the bg tree's nesting depth — colorBg needs to run again against the new
-	// tree, same as Cargoes/Vehicles do when their own structure changes.
-	useLayoutEffect(() => {
-		const root = rootRef.current;
-		if (!root) return;
-		recolor(root);
-	}, [menusVisible]);
 
 	const handleSolve = () => {
 		const invalid =

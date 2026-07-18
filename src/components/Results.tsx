@@ -3,7 +3,7 @@ import { downloadCsv } from "../helpers/csv";
 import { t } from "../helpers/locale";
 import { buildResultsCsv } from "../helpers/results";
 import { Assignments, type Solved } from "./Assignments";
-import { ActionGroup, ActionLabel, PanelHeader } from "./primitives";
+import { ActionLabel, PanelHeader, PanelMenu } from "./primitives";
 
 export function Results({
 	solved,
@@ -39,23 +39,19 @@ export function Results({
 
 	return (
 		<div className="bg" style={{ flex: 1, flexDirection: "column" }}>
-			<PanelHeader
-				title={t.compositions}
-				showActions={menusVisible}
-				actions={
-					<ActionGroup>
-						<ActionLabel color={ANSI.green} onClick={handleCalculate}>
-							{t.calculate}
-						</ActionLabel>
-						<ActionLabel color={ANSI.yellow} onClick={handleExport}>
-							{t.exportBtn}
-						</ActionLabel>
-						<ActionLabel color={ANSI.red} onClick={handleClear}>
-							{t.clear}
-						</ActionLabel>
-					</ActionGroup>
-				}
-			/>
+			<PanelHeader title={t.compositions}>
+				<PanelMenu visible={menusVisible}>
+					<ActionLabel color={ANSI.green} onClick={handleCalculate}>
+						{t.calculate}
+					</ActionLabel>
+					<ActionLabel color={ANSI.yellow} onClick={handleExport}>
+						{t.exportBtn}
+					</ActionLabel>
+					<ActionLabel color={ANSI.red} onClick={handleClear}>
+						{t.clear}
+					</ActionLabel>
+				</PanelMenu>
+			</PanelHeader>
 			<Assignments solved={solved} />
 		</div>
 	);

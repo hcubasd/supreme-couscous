@@ -5,7 +5,7 @@ import { classesToRows, type FleetController, rowsToClasses } from "../helpers/f
 import { recolor } from "../helpers/layout";
 import { CSV_DELIMITER, t } from "../helpers/locale";
 import { csvCellToInput, csvNumber } from "../helpers/number";
-import { ActionGroup, ActionLabel, PanelHeader, TableLabel } from "./primitives";
+import { ActionLabel, PanelHeader, PanelMenu, TableLabel } from "./primitives";
 import { Vehicle } from "./Vehicle";
 
 const CLASS_HEADERS = [
@@ -68,23 +68,19 @@ export function Vehicles({
 
 	return (
 		<div className="bg" style={{ flex: 11, flexDirection: "column" }}>
-			<PanelHeader
-				title={t.vehicles}
-				showActions={menusVisible}
-				actions={
-					<ActionGroup>
-						<ActionLabel color={ANSI.green} onClick={() => fileInputRef.current?.click()}>
-							{t.importBtn}
-						</ActionLabel>
-						<ActionLabel color={ANSI.yellow} onClick={handleExport}>
-							{t.exportBtn}
-						</ActionLabel>
-						<ActionLabel color={ANSI.red} onClick={handleClear}>
-							{t.clear}
-						</ActionLabel>
-					</ActionGroup>
-				}
-			/>
+			<PanelHeader title={t.vehicles}>
+				<PanelMenu visible={menusVisible}>
+					<ActionLabel color={ANSI.green} onClick={() => fileInputRef.current?.click()}>
+						{t.importBtn}
+					</ActionLabel>
+					<ActionLabel color={ANSI.yellow} onClick={handleExport}>
+						{t.exportBtn}
+					</ActionLabel>
+					<ActionLabel color={ANSI.red} onClick={handleClear}>
+						{t.clear}
+					</ActionLabel>
+				</PanelMenu>
+			</PanelHeader>
 			<div className="bg" style={{ flex: 1, flexDirection: "column" }}>
 				<div className="bg">
 					{CLASS_HEADERS.map((header) => (
