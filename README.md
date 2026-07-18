@@ -57,8 +57,8 @@ $$
 \sum_{t=i}^{j} w_t \le P_k
 \qquad\text{and}\qquad
 \exists\ \text{a partition into trailers } S_r \text{ with }
-\sum_{t \in S_r} w_t \le W_{k,r}, \;\;
-\sum_{t \in S_r} \ell_t + (|S_r|-1)\, g_{k,r} \le L_{k,r}.
+\sum_{t \in S_r} w_t \le W_{k,r}, \quad
+\sum_{t \in S_r} \ell_t + (|S_r|-1)\thinspace g_{k,r} \le L_{k,r}.
 $$
 
 The geometric term is *affine* and trailer-dependent: a trailer holding $|S_r|$
@@ -71,7 +71,7 @@ The charged cost floors the freight on the carried weight by the minimum charge,
 then adds the per-trip toll:
 
 $$
-c_{ijk} = \max\!\left(f_k \sum_{t=i}^{j} w_t,\; q_k\right) + a_k\, \tau_k
+c_{ijk} = \max\left(f_k \sum_{t=i}^{j} w_t,\thinspace q_k\right) + a_k\thinspace\tau_k
 $$
 
 A solution selects a set of trips that **partitions** the whole sequence (each
@@ -80,7 +80,7 @@ left-to-right tiling), uses at most $M_k$ vehicles of each class, and minimizes 
 **single lexicographic objective**: total cost first, then the number of trips.
 
 $$
-\min \Bigl(\textstyle\sum_{\text{trips}} c_{ijk},\;\; \bigl\lvert\{\text{trips}\}\bigr\rvert\Bigr)
+\min \Bigl(\textstyle\sum_{\text{trips}} c_{ijk},\quad \bigl\lvert\{\text{trips}\}\bigr\rvert\Bigr)
 $$
 
 That is: *no operation under these parameters can be cheaper than the one
